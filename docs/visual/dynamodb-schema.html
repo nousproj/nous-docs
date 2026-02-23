@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nous — DynamoDB Schema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500;600&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-body: 'Source Sans 3', system-ui, sans-serif;
+    --font-mono: 'Source Code Pro', 'Courier New', monospace;
+    --bg: #0f1a0f;
+    --surface: #152015;
+    --surface2: #1a2a1a;
+    --surface-elevated: #1f301f;
+    --border: rgba(74,222,128,0.1);
+    --border-bright: rgba(74,222,128,0.2);
+    --text: #dcfce7;
+    --text-dim: #86efac;
+    --accent: #4ade80;
+    --accent-dim: rgba(74,222,128,0.08);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96,165,250,0.1);
+    --amber: #fbbf24;
+    --amber-dim: rgba(251,191,36,0.08);
+    --purple: #c084fc;
+    --purple-dim: rgba(192,132,252,0.08);
+    --teal: #2dd4bf;
+    --teal-dim: rgba(45,212,191,0.08);
+    --red: #f87171;
+    --red-dim: rgba(248,113,113,0.08);
+    --gray: #4b5563;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f0fdf4;
+      --surface: #ffffff;
+      --surface2: #f0fdf4;
+      --surface-elevated: #fff;
+      --border: rgba(22,163,74,0.12);
+      --border-bright: rgba(22,163,74,0.25);
+      --text: #14532d;
+      --text-dim: #166534;
+      --accent: #16a34a;
+      --accent-dim: rgba(22,163,74,0.08);
+      --blue: #2563eb;
+      --blue-dim: rgba(37,99,235,0.08);
+      --amber: #d97706;
+      --amber-dim: rgba(217,119,6,0.08);
+      --purple: #7c3aed;
+      --purple-dim: rgba(124,58,237,0.08);
+      --teal: #0891b2;
+      --teal-dim: rgba(8,145,178,0.08);
+      --red: #dc2626;
+      --red-dim: rgba(220,38,38,0.08);
+      --gray: #9ca3af;
+    }
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    background-image: radial-gradient(ellipse at 50% 0%, var(--accent-dim) 0%, transparent 60%);
+    color: var(--text);
+    font-family: var(--font-body);
+    padding: 40px;
+    min-height: 100vh;
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(12px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .section { animation: fadeUp 0.4s ease-out both; animation-delay: calc(var(--i,0) * 0.07s); }
+  h1 { font-size:36px; font-weight:700; letter-spacing:-0.5px; margin-bottom:4px; }
+  .subtitle { color:var(--text-dim); font-size:12px; margin-bottom:36px; font-family:var(--font-mono); }
+  .layout { display:grid; grid-template-columns:1fr; gap:20px; max-width:1100px; margin:0 auto; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+  }
+  .card-title {
+    font-family: var(--font-mono);
+    font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:1.5px;
+    margin-bottom:14px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .card-title .dot { width:7px; height:7px; border-radius:50%; }
+  /* Color variants */
+  .card--accent .card-title { color:var(--accent); }
+  .card--accent .card-title .dot { background:var(--accent); }
+  .card--blue   .card-title { color:var(--blue); }
+  .card--blue   .card-title .dot { background:var(--blue); }
+  .card--amber  .card-title { color:var(--amber); }
+  .card--amber  .card-title .dot { background:var(--amber); }
+  .card--purple .card-title { color:var(--purple); }
+  .card--purple .card-title .dot { background:var(--purple); }
+  .card--teal   .card-title { color:var(--teal); }
+  .card--teal   .card-title .dot { background:var(--teal); }
+  .card--red    .card-title { color:var(--red); }
+  .card--red    .card-title .dot { background:var(--red); }
+
+  /* Table */
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  th {
+    text-align:left; font-family:var(--font-mono); font-size:10px;
+    text-transform:uppercase; letter-spacing:1px;
+    color:var(--text-dim); padding:6px 10px;
+    border-bottom:1px solid var(--border-bright);
+  }
+  td { padding:7px 10px; border-bottom:1px solid var(--border); vertical-align:top; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background: var(--surface2); }
+  .mono { font-family:var(--font-mono); font-size:11px; }
+  .badge {
+    display:inline-block; font-family:var(--font-mono); font-size:10px;
+    padding:2px 7px; border-radius:4px; white-space:nowrap;
+  }
+  .badge--pk     { background:var(--accent-dim);  color:var(--accent); }
+  .badge--sk     { background:var(--blue-dim);    color:var(--blue); }
+  .badge--gsi    { background:var(--amber-dim);   color:var(--amber); }
+  .badge--data   { background:var(--purple-dim);  color:var(--purple); }
+  .badge--meta   { background:var(--teal-dim);    color:var(--teal); }
+  .badge--fence  { background:var(--red-dim);     color:var(--red); }
+
+  /* Item example */
+  .item-example {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.75;
+    margin-top: 10px;
+    overflow-x: auto;
+  }
+  .ie-key   { color: var(--blue); }
+  .ie-val   { color: var(--text); }
+  .ie-pk    { color: var(--accent); font-weight:600; }
+  .ie-sk    { color: var(--blue); font-weight:600; }
+  .ie-gsi   { color: var(--amber); }
+  .ie-fence { color: var(--red); }
+  .ie-cm    { color: var(--text-dim); }
+
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+  .kv { font-size:13px; line-height:2; }
+  .kv .k { font-family:var(--font-mono); font-size:11px; color:var(--text-dim); min-width:130px; display:inline-block; }
+  @media (max-width:768px) {
+    body { padding:20px; }
+    .two-col, .three-col { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Nous DynamoDB Schema</h1>
+<p class="subtitle">single-table design &mdash; nous-state &mdash; all resource types in one table</p>
+
+<div class="layout">
+
+  <!-- Primary Key Schema -->
+  <div class="card card--accent section" style="--i:0">
+    <div class="card-title"><span class="dot"></span> Primary Key Structure</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Attribute</th>
+          <th>Type</th>
+          <th>Pattern</th>
+          <th>Example</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge--pk">PK</span></td>
+          <td class="mono">S</td>
+          <td class="mono">NS#&lt;namespace&gt;</td>
+          <td class="mono">NS#default</td>
+          <td>Partition by namespace — all resources in a namespace are co-located</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge--sk">SK</span></td>
+          <td class="mono">S</td>
+          <td class="mono">TYPE#&lt;name&gt;</td>
+          <td class="mono">AGENTDEF#researcher</td>
+          <td>Sort key uniquely identifies the resource within its partition</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge--gsi">GSI1PK</span></td>
+          <td class="mono">S</td>
+          <td class="mono">NS#&lt;ns&gt;#TYPE</td>
+          <td class="mono">NS#default#AGENTDEF</td>
+          <td>List all resources of a type within a namespace (sorted by creation time)</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge--gsi">GSI1SK</span></td>
+          <td class="mono">S</td>
+          <td class="mono">&lt;creation_ms&gt;#&lt;name&gt;</td>
+          <td class="mono">1706000000000#researcher</td>
+          <td>Chronological sort within GSI1 partition (millis for uniqueness)</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge--gsi">GSI2PK</span></td>
+          <td class="mono">S</td>
+          <td class="mono">NS#&lt;ns&gt;#AGENTDEF#&lt;owner&gt;</td>
+          <td class="mono">NS#default#AGENTDEF#researcher</td>
+          <td>Tasks and instances grouped by parent AgentDefinition</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge--gsi">GSI2SK</span></td>
+          <td class="mono">S</td>
+          <td class="mono">TASK#&lt;phase&gt;#&lt;ms&gt; / INST#&lt;phase&gt;#&lt;ms&gt;</td>
+          <td class="mono">INST#Ready#1706000003000</td>
+          <td>Filter by phase within parent group (begins_with query)</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge--data">Data</span></td>
+          <td class="mono">S</td>
+          <td class="mono">protojson string</td>
+          <td class="mono">{"metadata":{"name":"researcher"},...}</td>
+          <td>Full proto resource as protojson — source of truth for deserialization</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge--meta">ResourceVersion</span></td>
+          <td class="mono">S</td>
+          <td class="mono">ULID</td>
+          <td class="mono">01JCXZ1234ABCDEF</td>
+          <td>Optimistic concurrency token. Used in conditional writes and Watch resume.</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge--fence">FenceToken</span></td>
+          <td class="mono">N</td>
+          <td class="mono">UnixMilli</td>
+          <td class="mono">1740142800000</td>
+          <td>Leader election fencing. Writes rejected if stored FenceToken &gt; write FenceToken.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Sort Key Prefixes -->
+  <div class="two-col">
+    <div class="card card--blue section" style="--i:1">
+      <div class="card-title"><span class="dot"></span> Sort Key Prefixes</div>
+      <table>
+        <thead><tr><th>Prefix</th><th>Resource Type</th></tr></thead>
+        <tbody>
+          <tr><td class="mono"><span class="badge badge--sk">AGENTDEF#</span></td><td>AgentDefinition</td></tr>
+          <tr><td class="mono"><span class="badge badge--sk">AGENTTASK#</span></td><td>AgentTask</td></tr>
+          <tr><td class="mono"><span class="badge badge--sk">AGENTINST#</span></td><td>AgentInstance</td></tr>
+          <tr><td class="mono"><span class="badge badge--fence">LEASE#</span></td><td>Leader election lease (PK, not SK)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card card--amber section" style="--i:2">
+      <div class="card-title"><span class="dot"></span> Conditional Write Patterns</div>
+      <div class="kv">
+        <div><span class="k">Create</span> attribute_not_exists(PK) → ErrExists</div>
+        <div><span class="k">Update</span> ResourceVersion = :expected → ErrConflict</div>
+        <div><span class="k">Delete</span> attribute_exists(PK) → ErrNotFound</div>
+        <div><span class="k">Fenced write</span> FenceToken &lt;= :token → ErrStaleFence</div>
+        <div><span class="k">Lease acquire</span> not_exists OR expired OR same_holder</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Example Items -->
+  <div class="card card--purple section" style="--i:3">
+    <div class="card-title"><span class="dot"></span> Example Items</div>
+    <div class="three-col">
+      <div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text-dim)">AgentDefinition</div>
+        <div class="item-example">
+<span class="ie-pk">PK:</span> <span class="ie-val">"NS#default"</span>
+<span class="ie-sk">SK:</span> <span class="ie-val">"AGENTDEF#researcher"</span>
+<span class="ie-gsi">GSI1PK:</span> <span class="ie-val">"NS#default#AGENTDEF"</span>
+<span class="ie-gsi">GSI1SK:</span> <span class="ie-val">"1706000000000#researcher"</span>
+<span class="ie-key">ResourceVersion:</span> <span class="ie-val">"01JCXZ..."</span>
+<span class="ie-fence">FenceToken:</span> <span class="ie-val">1740142800000</span>
+<span class="ie-key">ResourceType:</span> <span class="ie-val">"AGENTDEF"</span>
+<span class="ie-key">Data:</span> <span class="ie-val">"{spec:{scaling:...}}"</span>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text-dim)">AgentInstance</div>
+        <div class="item-example">
+<span class="ie-pk">PK:</span> <span class="ie-val">"NS#default"</span>
+<span class="ie-sk">SK:</span> <span class="ie-val">"AGENTINST#researcher-abc"</span>
+<span class="ie-gsi">GSI1PK:</span> <span class="ie-val">"NS#default#AGENTINST"</span>
+<span class="ie-gsi">GSI2PK:</span> <span class="ie-val">"NS#default#AGENTDEF#researcher"</span>
+<span class="ie-gsi">GSI2SK:</span> <span class="ie-val">"INST#Ready#1706000003000"</span>
+<span class="ie-key">ResourceVersion:</span> <span class="ie-val">"01JCXZ..."</span>
+<span class="ie-fence">FenceToken:</span> <span class="ie-val">1740142800000</span>
+<span class="ie-key">Data:</span> <span class="ie-val">"{spec:{agentDef:...}}"</span>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text-dim)">Leader Lease</div>
+        <div class="item-example">
+<span class="ie-pk">PK:</span> <span class="ie-val">"LEASE#controller-manager"</span>
+<span class="ie-sk">SK:</span> <span class="ie-val">"SINGLETON"</span>
+<span class="ie-key">HolderID:</span> <span class="ie-val">"cm-abc123"</span>
+<span class="ie-key">LeaseExpiry:</span> <span class="ie-val">"2026-02-21T10:00:15Z"</span>
+<span class="ie-fence">FenceToken:</span> <span class="ie-val">1740142800000</span>
+<span class="ie-cm">// TTL-based expiry: 15s</span>
+<span class="ie-cm">// Acquired via PutItem</span>
+<span class="ie-cm">// condition: not_exists OR</span>
+<span class="ie-cm">//   LeaseExpiry &lt; now OR</span>
+<span class="ie-cm">//   HolderID = :me</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GSI Query Patterns -->
+  <div class="card card--teal section" style="--i:4">
+    <div class="card-title"><span class="dot"></span> GSI Query Patterns</div>
+    <table>
+      <thead>
+        <tr><th>Operation</th><th>Index</th><th>KeyCondition</th><th>FilterExpression</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>List all AgentDefinitions in namespace</td>
+          <td class="mono"><span class="badge badge--gsi">GSI1</span></td>
+          <td class="mono">GSI1PK = "NS#default#AGENTDEF"</td>
+          <td class="mono">—</td>
+        </tr>
+        <tr>
+          <td>List AgentTasks in namespace (paginated)</td>
+          <td class="mono"><span class="badge badge--gsi">GSI1</span></td>
+          <td class="mono">GSI1PK = "NS#default#AGENTTASK"</td>
+          <td class="mono">label filters (client-side)</td>
+        </tr>
+        <tr>
+          <td>Get instances of a specific AgentDefinition</td>
+          <td class="mono"><span class="badge badge--gsi">GSI2</span></td>
+          <td class="mono">GSI2PK = "NS#default#AGENTDEF#researcher"<br>GSI2SK begins_with "INST#"</td>
+          <td class="mono">ResourceType = "AGENTINST"</td>
+        </tr>
+        <tr>
+          <td>Get Ready instances only</td>
+          <td class="mono"><span class="badge badge--gsi">GSI2</span></td>
+          <td class="mono">GSI2PK = "NS#default#AGENTDEF#researcher"<br>GSI2SK begins_with "INST#Ready#"</td>
+          <td class="mono">—</td>
+        </tr>
+        <tr>
+          <td>Get tasks by agent (phase filter)</td>
+          <td class="mono"><span class="badge badge--gsi">GSI2</span></td>
+          <td class="mono">GSI2PK = "NS#default#AGENTDEF#researcher"<br>GSI2SK begins_with "TASK#Running#"</td>
+          <td class="mono">—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ULID resource version -->
+  <div class="card card--red section" style="--i:5">
+    <div class="card-title"><span class="dot"></span> ULID Resource Version</div>
+    <div class="two-col">
+      <div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Format</div>
+        <div class="item-example" style="margin-top:0">
+<span class="ie-cm">01JCXZ 1234AB CDEF56</span>
+<span class="ie-cm">←10ch→ ←————16ch random————→</span>
+
+<span class="ie-gsi">Timestamp part</span> (10 chars):
+  <span class="ie-val">milliseconds since epoch</span>
+  <span class="ie-val">base32 Crockford encoded</span>
+  <span class="ie-val">sortable lexicographically!</span>
+
+<span class="ie-gsi">Random part</span> (16 chars):
+  <span class="ie-val">80 bits of randomness</span>
+  <span class="ie-val">monotonically increasing</span>
+  <span class="ie-val">within same millisecond</span>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Why ULIDs (not UUIDs)</div>
+        <div class="kv" style="font-size:12px;line-height:2;">
+          <div><span class="k">Time-ordered</span> Sortable in DynamoDB range key</div>
+          <div><span class="k">Watch cursor</span> Resume from any resource_version</div>
+          <div><span class="k">No coordination</span> Generated without distributed lock</div>
+          <div><span class="k">Human-readable</span> Timestamp visible in first 10 chars</div>
+          <div><span class="k">Library</span> github.com/oklog/ulid/v2</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

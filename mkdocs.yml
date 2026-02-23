@@ -1,0 +1,127 @@
+site_name: Nous — Control Plane for AI Agents
+site_description: Open-source AI agent orchestration system applying Kubernetes patterns to cognitive workloads
+site_url: https://nousproj.github.io/nous-docs
+repo_url: https://github.com/nousproj
+repo_name: nousproj
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - search.highlight
+    - search.share
+    - search.suggest
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search:
+      lang: en
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - tables
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_div_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+nav:
+  - Home: index.md
+  - Architecture:
+      - System Overview: architecture/system-architecture.md
+      - Visual Architecture: architecture/visual-architecture.md
+      - Dependency Graph: architecture/dependency-graph.md
+      - Data Model: architecture/data-model.md
+      - Reconciliation Loop: architecture/reconciliation-loop.md
+  - Visual Diagrams:
+      - System Architecture: visual/system-architecture.html
+      - Reconciliation Flow: visual/reconciliation-flow.html
+      - DynamoDB Schema: visual/dynamodb-schema.html
+  - Components:
+      - nous-api-server: components/nous-api-server.md
+      - nous-controller-manager: components/nous-controller-manager.md
+      - nous-proto: components/nous-proto.md
+      - nous-scheduler: components/nous-scheduler.md
+      - nous-node-supervisor: components/nous-node-supervisor.md
+      - nous-agent-runtime: components/nous-agent-runtime.md
+      - nous-infra: components/nous-infra.md
+  - Decisions (ADRs):
+      - ADR-001 Standalone Control Plane: adr/001-standalone-control-plane.md
+      - ADR-002 DynamoDB State Store: adr/002-dynamodb-state-store.md
+      - ADR-003 Proto-Based Contracts: adr/003-proto-based-contracts.md
+      - ADR-004 ULID Resource Versioning: adr/004-ulid-resource-versioning.md
+      - ADR-005 NATS JetStream Messaging: adr/005-nats-jetstream-messaging.md
+  - Phase 1:
+      - Implementation Guide: phase-1/README.md
+      - Quality Gates: phase-1/quality-gates.md
+  - Analysis:
+      - Cycle Analysis: analysis/cycle-analysis.md
+  - Contributing: contributing.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/nousproj
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - https://unpkg.com/mermaid@11/dist/mermaid.min.js
+  - javascripts/extra.js
+
+copyright: Copyright &copy; 2026 Nous Project Contributors
