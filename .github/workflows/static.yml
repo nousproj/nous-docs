@@ -1,43 +1,364 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+name: Deploy HTML Visualizations to Pages
+
+# This workflow deploys the HTML visualization pages from docs/visual/
+# as a standalone static site with a gallery index page.
+#
+# ⚠️  IMPORTANT DEPLOYMENT CONFLICT:
+# - This workflow deploys to GitHub Pages
+# - docs.yml (MkDocs) also deploys to GitHub Pages
+# - Only ONE can be active at a time (last deployment wins)
+#
+# CURRENT SETUP: Both workflows can coexist with these triggers:
+# - docs.yml: Triggers on docs/**, mkdocs.yml, requirements.txt changes
+# - static.yml: Triggers on docs/visual/*.html changes
+# - When HTML changes, static.yml publishes minimal gallery
+# - When other docs change, docs.yml publishes full MkDocs site
+#
+# For a unified experience, disable one workflow or use only docs.yml.
 
 on:
-  # Runs on pushes targeting the default branch
   push:
     branches: ["main"]
+    paths:
+      - 'docs/visual/*.html'
+      - '.github/workflows/static.yml'
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  # Single deploy job since we're just deploying
   deploy:
+    name: Deploy HTML Visualizations
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Create static site structure
+        run: |
+          mkdir -p _site/visual
+          
+          # Copy all HTML visualization files
+          echo "📋 Copying HTML visualization files..."
+          cp docs/visual/*.html _site/visual/
+          
+          # Create a beautiful gallery index page
+          cat > _site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Nous — Architecture Visualizations</title>
+              <meta name="description" content="Interactive architectural visualizations for the Nous AI agent control plane">
+              <style>
+                  * { margin: 0; padding: 0; box-sizing: border-box; }
+                  
+                  body {
+                      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                      background: linear-gradient(135deg, #06070b 0%, #12151e 50%, #161a26 100%);
+                      color: #e8ecf4;
+                      min-height: 100vh;
+                      line-height: 1.6;
+                  }
+                  
+                  .container {
+                      max-width: 1400px;
+                      margin: 0 auto;
+                      padding: 60px 20px;
+                  }
+                  
+                  header {
+                      text-align: center;
+                      margin-bottom: 80px;
+                      padding-bottom: 40px;
+                      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                  }
+                  
+                  h1 {
+                      font-size: 3.5rem;
+                      font-weight: 800;
+                      background: linear-gradient(135deg, #4d9aff 0%, #8b5cf6 50%, #22d3ee 100%);
+                      -webkit-background-clip: text;
+                      -webkit-text-fill-color: transparent;
+                      background-clip: text;
+                      margin-bottom: 20px;
+                      letter-spacing: -0.02em;
+                  }
+                  
+                  .subtitle {
+                      font-size: 1.35rem;
+                      color: #7a8399;
+                      font-weight: 400;
+                      max-width: 700px;
+                      margin: 0 auto;
+                  }
+                  
+                  .badge {
+                      display: inline-block;
+                      background: rgba(77, 154, 255, 0.15);
+                      color: #4d9aff;
+                      padding: 6px 16px;
+                      border-radius: 20px;
+                      font-size: 0.875rem;
+                      font-weight: 500;
+                      margin-top: 20px;
+                      border: 1px solid rgba(77, 154, 255, 0.3);
+                  }
+                  
+                  .gallery {
+                      display: grid;
+                      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                      gap: 28px;
+                      margin-bottom: 80px;
+                  }
+                  
+                  .card {
+                      background: rgba(22, 26, 38, 0.6);
+                      backdrop-filter: blur(10px);
+                      border: 1px solid rgba(255, 255, 255, 0.08);
+                      border-radius: 16px;
+                      padding: 32px;
+                      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                      position: relative;
+                      overflow: hidden;
+                  }
+                  
+                  .card::before {
+                      content: '';
+                      position: absolute;
+                      top: 0;
+                      left: 0;
+                      right: 0;
+                      height: 4px;
+                      background: linear-gradient(90deg, #4d9aff, #8b5cf6, #22d3ee);
+                      opacity: 0;
+                      transition: opacity 0.3s ease;
+                  }
+                  
+                  .card:hover {
+                      border-color: rgba(77, 154, 255, 0.4);
+                      transform: translateY(-6px);
+                      box-shadow: 0 16px 48px rgba(77, 154, 255, 0.25);
+                      background: rgba(22, 26, 38, 0.9);
+                  }
+                  
+                  .card:hover::before {
+                      opacity: 1;
+                  }
+                  
+                  .card-icon {
+                      font-size: 2.5rem;
+                      margin-bottom: 16px;
+                      display: block;
+                  }
+                  
+                  .card-title {
+                      color: #e8ecf4;
+                      font-size: 1.5rem;
+                      font-weight: 600;
+                      margin-bottom: 12px;
+                  }
+                  
+                  .card-description {
+                      color: #7a8399;
+                      margin-bottom: 24px;
+                      line-height: 1.7;
+                      font-size: 0.975rem;
+                  }
+                  
+                  .card-link {
+                      display: inline-flex;
+                      align-items: center;
+                      gap: 8px;
+                      color: #4d9aff;
+                      text-decoration: none;
+                      font-weight: 600;
+                      padding: 12px 24px;
+                      border: 2px solid #4d9aff;
+                      border-radius: 8px;
+                      transition: all 0.2s ease;
+                      font-size: 0.95rem;
+                  }
+                  
+                  .card-link:hover {
+                      background: #4d9aff;
+                      color: #06070b;
+                      transform: translateX(4px);
+                      box-shadow: 0 4px 16px rgba(77, 154, 255, 0.4);
+                  }
+                  
+                  .footer {
+                      margin-top: 100px;
+                      padding-top: 40px;
+                      border-top: 1px solid rgba(255, 255, 255, 0.08);
+                      text-align: center;
+                      color: #4a5266;
+                  }
+                  
+                  .footer-links {
+                      margin: 24px 0;
+                      display: flex;
+                      justify-content: center;
+                      flex-wrap: wrap;
+                      gap: 24px;
+                  }
+                  
+                  .footer-links a {
+                      color: #4d9aff;
+                      text-decoration: none;
+                      transition: all 0.2s ease;
+                      padding: 8px 16px;
+                      border-radius: 6px;
+                  }
+                  
+                  .footer-links a:hover {
+                      color: #8b5cf6;
+                      background: rgba(139, 92, 246, 0.1);
+                  }
+                  
+                  .footer-note {
+                      margin-top: 20px;
+                      font-size: 0.875rem;
+                      opacity: 0.7;
+                  }
+                  
+                  @media (max-width: 768px) {
+                      h1 {
+                          font-size: 2.5rem;
+                      }
+                      
+                      .subtitle {
+                          font-size: 1.1rem;
+                      }
+                      
+                      .gallery {
+                          grid-template-columns: 1fr;
+                      }
+                      
+                      .footer-links {
+                          flex-direction: column;
+                          gap: 12px;
+                      }
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <header>
+                      <h1>Nous Architecture Gallery</h1>
+                      <p class="subtitle">
+                          Interactive architectural visualizations for the AI agent control plane
+                      </p>
+                      <span class="badge">5 Interactive Diagrams</span>
+                  </header>
+                  
+                  <div class="gallery">
+                      <div class="card">
+                          <span class="card-icon">🎯</span>
+                          <h2 class="card-title">Nous Overview</h2>
+                          <p class="card-description">
+                              High-level system overview introducing the Nous control plane architecture, 
+                              key concepts, and the Kubernetes-inspired patterns adapted for AI agent orchestration.
+                          </p>
+                          <a href="visual/nous-overview.html" class="card-link">
+                              Explore Diagram →
+                          </a>
+                      </div>
+                      
+                      <div class="card">
+                          <span class="card-icon">⚙️</span>
+                          <h2 class="card-title">Control Plane Architecture</h2>
+                          <p class="card-description">
+                              Detailed breakdown of control plane components including API Server, 
+                              Controller Manager, and their interactions in managing agent lifecycle.
+                          </p>
+                          <a href="visual/control-plane-architecture.html" class="card-link">
+                              Explore Diagram →
+                          </a>
+                      </div>
+                      
+                      <div class="card">
+                          <span class="card-icon">🏗️</span>
+                          <h2 class="card-title">System Architecture</h2>
+                          <p class="card-description">
+                              Complete end-to-end system architecture showing all microservices, 
+                              communication patterns, and deployment topology across AWS infrastructure.
+                          </p>
+                          <a href="visual/system-architecture.html" class="card-link">
+                              Explore Diagram →
+                          </a>
+                      </div>
+                      
+                      <div class="card">
+                          <span class="card-icon">🔄</span>
+                          <h2 class="card-title">Reconciliation Flow</h2>
+                          <p class="card-description">
+                              The heart of Nous: Kubernetes-inspired reconciliation loop showing how 
+                              controllers continuously align actual state with desired state.
+                          </p>
+                          <a href="visual/reconciliation-flow.html" class="card-link">
+                              Explore Diagram →
+                          </a>
+                      </div>
+                      
+                      <div class="card">
+                          <span class="card-icon">💾</span>
+                          <h2 class="card-title">DynamoDB Schema</h2>
+                          <p class="card-description">
+                              Single-table design for state storage with GSI configurations, 
+                              access patterns, and optimistic locking strategies for consistent state management.
+                          </p>
+                          <a href="visual/dynamodb-schema.html" class="card-link">
+                              Explore Diagram →
+                          </a>
+                      </div>
+                  </div>
+                  
+                  <footer class="footer">
+                      <p style="font-size: 1.1rem; font-weight: 500; color: #7a8399;">
+                          Part of the <strong style="color: #4d9aff;">Nous Project</strong> — Control Plane for AI Agents
+                      </p>
+                      <div class="footer-links">
+                          <a href="https://github.com/nousproj">GitHub Organization</a>
+                          <a href="https://nousproj.github.io/nous-docs">Full Documentation</a>
+                          <a href="https://github.com/nousproj/nous-docs">Source Code</a>
+                      </div>
+                      <p class="footer-note">
+                          Copyright &copy; 2026 Nous Project Contributors
+                      </p>
+                  </footer>
+              </div>
+          </body>
+          </html>
+          EOF
+          
+          echo "✅ Static site structure created successfully"
+          echo ""
+          echo "📄 HTML Files Included:"
+          find _site -type f -name "*.html" | sort | sed 's/^/  - /'
+          echo ""
+          echo "🌐 Site will be deployed to GitHub Pages"
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
-          path: '.'
+          path: '_site'
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
