@@ -89,6 +89,7 @@ nav:
       - Data Model: architecture/data-model.md
       - Reconciliation Loop: architecture/reconciliation-loop.md
   - Visual Diagrams:
+      - Nous Overview: visual/nous-overview.html
       - Control Plane Architecture: visual/control-plane-architecture.html
       - System Architecture: visual/system-architecture.html
       - Reconciliation Flow: visual/reconciliation-flow.html
