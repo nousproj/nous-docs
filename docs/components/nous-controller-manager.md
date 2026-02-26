@@ -23,7 +23,7 @@ graph TB
         MS["MetricsServer<br/>:9091/metrics /healthz"]
     end
 
-    API["nous-api-server<br/>gRPC :50051"]
+    API["nous-api-server<br/>gRPC :31051"]
     DDB["DynamoDB<br/>(nous-leases table)"]
 
     LE <-->|"PutItem/UpdateItem<br/>lease acquisition"| DDB
@@ -85,7 +85,7 @@ Reconcile("default/researcher"):
 
 | Env Var | Default | Description |
 |---------|---------|-------------|
-| `NOUS_APISERVER_ADDRESS` | `localhost:50051` | gRPC address of nous-api-server |
+| `NOUS_APISERVER_ADDRESS` | `localhost:31051` | gRPC address of nous-api-server |
 | `NOUS_LEADERELECTION_ENABLED` | `false` | Enable DynamoDB leader election |
 | `NOUS_LEADERELECTION_DYNAMODB_TABLENAME` | `nous-leases` | Leases table name |
 | `NOUS_LEADERELECTION_DYNAMODB_ENDPOINT` | `` | Override for DynamoDB Local |

@@ -58,7 +58,7 @@ services:
 
   nous-api-server:
     build: ../nous-api-server
-    ports: ["50051:50051", "8080:8080", "9090:9090"]
+    ports: ["31051:31051", "8080:8080", "9090:9090"]
     environment:
       NOUS_STORAGE_DRIVER: dynamodb
       NOUS_STORAGE_DYNAMODB_ENDPOINT: http://dynamodb-local:8000
@@ -68,7 +68,7 @@ services:
   nous-controller-manager:
     build: ../nous-controller-manager
     environment:
-      NOUS_APISERVER_ADDRESS: nous-api-server:50051
+      NOUS_APISERVER_ADDRESS: nous-api-server:31051
       NOUS_LEADERELECTION_ENABLED: "true"
       NOUS_LEADERELECTION_DYNAMODB_ENDPOINT: http://dynamodb-local:8000
 ```

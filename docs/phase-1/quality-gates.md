@@ -15,7 +15,7 @@ Before Phase 1 is considered complete, all of the following must pass.
 - [x] `docker-compose up` starts: dynamodb-local, nous-api-server, nous-controller-manager
 - [x] All services reach healthy state within 30s
 - [x] DynamoDB Local tables created (`nous-state`, `nous-leases`)
-- [x] API server responds: `grpcurl -plaintext localhost:50051 list`
+- [x] API server responds: `grpcurl -plaintext localhost:31051 list`
 - [x] Metrics endpoints respond: `curl localhost:9090/metrics`
 
 ## End-to-End Smoke Test

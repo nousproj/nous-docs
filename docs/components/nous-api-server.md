@@ -23,7 +23,7 @@ graph TB
 
     subgraph Server["nous-api-server"]
         direction TB
-        gRPC["gRPC Server :50051<br/>NousAPI service"]
+        gRPC["gRPC Server :31051<br/>NousAPI service"]
         HTTP["HTTP Server :8080<br/>/apis/nousproj.ai/v1alpha1/..."]
         Metrics["Metrics :9090<br/>/healthz /readyz /metrics"]
 
@@ -47,7 +47,7 @@ graph TB
 
 ## Key Endpoints
 
-### gRPC (`:50051`)
+### gRPC (`:31051`)
 
 | Method | Description |
 |--------|-------------|
@@ -118,7 +118,7 @@ Client A retries: re-reads, sees new version, applies patch, succeeds
 
 | Env Var | Default | Description |
 |---------|---------|-------------|
-| `NOUS_SERVER_GRPC_PORT` | `50051` | gRPC listen port |
+| `NOUS_SERVER_GRPC_PORT` | `31051` | gRPC listen port |
 | `NOUS_SERVER_HTTP_PORT` | `8080` | HTTP/REST listen port |
 | `NOUS_SERVER_METRICS_PORT` | `9090` | Metrics/health port |
 | `NOUS_STORAGE_DRIVER` | `memory` | `memory` or `dynamodb` |

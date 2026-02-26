@@ -18,7 +18,7 @@ graph TB
 
     subgraph ControlPlane["Control Plane (AWS ECS)"]
         direction TB
-        API["<b>nous-api-server</b><br/>─────────────────<br/>gRPC :50051<br/>REST/HTTP :8080<br/>Metrics :9090<br/>─────────────────<br/>NousAPI service<br/>Watch broadcaster<br/>Admission control"]
+        API["<b>nous-api-server</b><br/>─────────────────<br/>gRPC :31051<br/>REST/HTTP :8080<br/>Metrics :9090<br/>─────────────────<br/>NousAPI service<br/>Watch broadcaster<br/>Admission control"]
         CM["<b>nous-controller-manager</b><br/>─────────────────<br/>AgentController<br/>TaskController<br/>HealthController<br/>RecoveryController<br/>─────────────────<br/>Leader Election<br/>Work Queue"]
         SCH["<b>nous-scheduler</b><br/>─────────────────<br/>Multi-Objective<br/>Cost/Quality/Latency<br/>─────────────────<br/>Task → Node Matching<br/>Affinity Rules"]
     end

@@ -1,4 +1,5 @@
 site_name: Nous — Control Plane for AI Agents
+dev_addr: '127.0.0.1:1988'
 site_description: Open-source AI agent orchestration system applying Kubernetes patterns to cognitive workloads
 site_url: https://nousproj.github.io/nous-docs
 repo_url: https://github.com/nousproj
@@ -88,6 +89,7 @@ nav:
       - Data Model: architecture/data-model.md
       - Reconciliation Loop: architecture/reconciliation-loop.md
   - Visual Diagrams:
+      - Control Plane Architecture: visual/control-plane-architecture.html
       - System Architecture: visual/system-architecture.html
       - Reconciliation Flow: visual/reconciliation-flow.html
       - DynamoDB Schema: visual/dynamodb-schema.html
