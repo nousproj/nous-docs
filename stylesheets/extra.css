@@ -1,0 +1,43 @@
+/* Nous documentation — extra styles */
+
+/* Mermaid diagram sizing — force diagrams to fill the content column
+   and use a readable font size instead of the tiny default */
+.mermaid {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.mermaid svg {
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+  font-size: 14px !important;
+}
+/* Sequence diagram text is set inline; bump the base font via CSS var */
+:root {
+  --md-mermaid-font-size: 14px;
+}
+
+/* Component status badges */
+.status-complete { color: #16a34a; font-weight: 600; }
+.status-planned  { color: #d97706; font-weight: 600; }
+.status-scaffold { color: #6b7280; font-weight: 600; }
+
+/* Code block enhancements */
+.md-typeset pre > code {
+  font-size: 0.82em;
+}
+
+/* Admonition customization */
+.md-typeset .admonition.warning {
+  border-color: #d97706;
+}
+
+/* Table improvements */
+.md-typeset table:not([class]) {
+  width: 100%;
+}
+
+/* Green checked task-list checkboxes */
+.md-typeset [type=checkbox]:checked + .task-list-indicator::before {
+  background-color: #16a34a !important;
+}

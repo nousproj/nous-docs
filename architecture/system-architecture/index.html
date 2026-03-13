@@ -1,0 +1,2572 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Open-source AI agent orchestration system applying Kubernetes patterns to cognitive workloads">
+      
+      
+      
+        <link rel="canonical" href="https://nousproj.github.io/nous-docs/architecture/system-architecture/">
+      
+      
+        <link rel="prev" href="../..">
+      
+      
+        <link rel="next" href="../visual-architecture/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.50">
+    
+    
+      
+        <title>System Overview - Nous — Control Plane for AI Agents</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.a40c8224.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#system-architecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Nous — Control Plane for AI Agents" class="md-header__button md-logo" aria-label="Nous — Control Plane for AI Agents" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Nous — Control Plane for AI Agents
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              System Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/nousproj" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    nousproj
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../visual/nous-overview.html" class="md-tabs__link">
+          
+  
+  Visual Diagrams
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../components/nous-api-server/" class="md-tabs__link">
+          
+  
+  Components
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../adr/001-standalone-control-plane/" class="md-tabs__link">
+          
+  
+  Decisions (ADRs)
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../phase-1/" class="md-tabs__link">
+          
+  
+  Phase 1
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../analysis/cycle-analysis/" class="md-tabs__link">
+          
+  
+  Analysis
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../contributing/" class="md-tabs__link">
+        
+  
+    
+  
+  Contributing
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Nous — Control Plane for AI Agents" class="md-nav__button md-logo" aria-label="Nous — Control Plane for AI Agents" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Nous — Control Plane for AI Agents
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/nousproj" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    nousproj
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Architecture
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    System Overview
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    System Overview
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture Style
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nous-resources-vs-kubernetes-analogy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Nous Resources vs Kubernetes Analogy
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-agents-differ-from-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      How Agents Differ from Containers
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#component-descriptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component Descriptions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Component Descriptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#control-plane" class="md-nav__link">
+    <span class="md-ellipsis">
+      Control Plane
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-plane" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Plane
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      State Layer
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technology-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Stack
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment Architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deployment Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#development" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#staging" class="md-nav__link">
+    <span class="md-ellipsis">
+      Staging
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#production" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state-management-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      State Management Model
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="State Management Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-infrastructure-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Infrastructure State
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-cognitive-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Cognitive State
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-behavioral-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Behavioral State
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-tenancy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multi-Tenancy
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#communication-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Communication Patterns
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Communication Patterns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#synchronous-grpc" class="md-nav__link">
+    <span class="md-ellipsis">
+      Synchronous (gRPC)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asynchronous-nats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Asynchronous (NATS)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage-mediated" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storage-Mediated
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      Observability
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Observability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metrics-prometheus" class="md-nav__link">
+    <span class="md-ellipsis">
+      Metrics (Prometheus)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tracing-opentelemetry" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tracing (OpenTelemetry)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logging-structured" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logging (Structured)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Security">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#secrets-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Secrets Management
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#iam-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      IAM Roles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-tenancy-isolation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multi-Tenancy Isolation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      References
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../visual-architecture/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Visual Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dependency-graph/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Dependency Graph
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-model/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Model
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reconciliation-loop/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reconciliation Loop
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Visual Diagrams
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Visual Diagrams
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../visual/nous-overview.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Nous Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../visual/control-plane-architecture.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Control Plane Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../visual/system-architecture.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    System Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../visual/reconciliation-flow.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reconciliation Flow
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../visual/dynamodb-schema.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DynamoDB Schema
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Components
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Components
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../components/nous-api-server/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    nous-api-server
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../components/nous-controller-manager/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    nous-controller-manager
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../components/nous-proto/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    nous-proto
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../components/nous-scheduler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    nous-scheduler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../components/nous-node-supervisor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    nous-node-supervisor
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../components/nous-agent-runtime/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    nous-agent-runtime
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../components/nous-infra/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    nous-infra
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Decisions (ADRs)
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Decisions (ADRs)
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/001-standalone-control-plane/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ADR-001 Standalone Control Plane
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/002-dynamodb-state-store/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ADR-002 DynamoDB State Store
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/003-proto-based-contracts/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ADR-003 Proto-Based Contracts
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/004-ulid-resource-versioning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ADR-004 ULID Resource Versioning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/005-nats-jetstream-messaging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ADR-005 NATS JetStream Messaging
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Phase 1
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Phase 1
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phase-1/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Implementation Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phase-1/quality-gates/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Quality Gates
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Analysis
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Analysis
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/cycle-analysis/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cycle Analysis
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Contributing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture Style
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nous-resources-vs-kubernetes-analogy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Nous Resources vs Kubernetes Analogy
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-agents-differ-from-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      How Agents Differ from Containers
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#component-descriptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component Descriptions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Component Descriptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#control-plane" class="md-nav__link">
+    <span class="md-ellipsis">
+      Control Plane
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-plane" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Plane
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      State Layer
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technology-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Stack
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment Architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deployment Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#development" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#staging" class="md-nav__link">
+    <span class="md-ellipsis">
+      Staging
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#production" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state-management-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      State Management Model
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="State Management Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-infrastructure-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Infrastructure State
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-cognitive-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Cognitive State
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-behavioral-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Behavioral State
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-tenancy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multi-Tenancy
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#communication-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Communication Patterns
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Communication Patterns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#synchronous-grpc" class="md-nav__link">
+    <span class="md-ellipsis">
+      Synchronous (gRPC)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asynchronous-nats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Asynchronous (NATS)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage-mediated" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storage-Mediated
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      Observability
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Observability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metrics-prometheus" class="md-nav__link">
+    <span class="md-ellipsis">
+      Metrics (Prometheus)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tracing-opentelemetry" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tracing (OpenTelemetry)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logging-structured" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logging (Structured)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Security">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#secrets-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Secrets Management
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#iam-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      IAM Roles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-tenancy-isolation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multi-Tenancy Isolation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      References
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="system-architecture">System Architecture<a class="headerlink" href="#system-architecture" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Nous is a standalone AI agent orchestration system that applies Kubernetes-style infrastructure patterns (declarative resources, reconciliation loops, self-healing) to AI agent management. It is NOT a Kubernetes operator — it is runtime-agnostic and manages agents across ECS, Lambda, VMs, and edge devices.</p>
+<p><strong>Critical Design Insight</strong>: Container orchestration patterns don't map 1:1 to cognitive workloads. Agents are probabilistic (not deterministic), have complex cognitive state (not externalized state), require semantic health evaluation (not binary checks), and need multi-objective resource scheduling (not simple bin packing).</p>
+<hr />
+<h2 id="architecture-style">Architecture Style<a class="headerlink" href="#architecture-style" title="Permanent link">&para;</a></h2>
+<p><strong>Pattern</strong>: Control Plane / Data Plane Split (Kubernetes-inspired)</p>
+<div class="mermaid">graph TB
+    subgraph ControlPlane["Control Plane"]
+        API[nous-api-server&lt;br/&gt;gRPC API, Watch Streams]
+        SCH[nous-scheduler&lt;br/&gt;Multi-Objective Scheduler]
+        CM[nous-controller-manager&lt;br/&gt;AgentController, TaskController,&lt;br/&gt;HealthController, RecoveryController]
+    end
+
+    subgraph StateLayer["State Layer"]
+        DDB[(DynamoDB&lt;br/&gt;Single-Table Design)]
+        S3[(S3&lt;br/&gt;Cognitive State Blobs)]
+        NATS[("NATS JetStream&lt;br/&gt;Message Bus")]
+    end
+
+    subgraph DataPlane["Data Plane"]
+        NS1[nous-node-supervisor&lt;br/&gt;Node 1]
+        NS2[nous-node-supervisor&lt;br/&gt;Node 2]
+        AR1[nous-agent-runtime&lt;br/&gt;Agent Instance]
+        AR2[nous-agent-runtime&lt;br/&gt;Agent Instance]
+        AR3[nous-agent-runtime&lt;br/&gt;Agent Instance]
+    end
+
+    subgraph External["External Systems"]
+        LLM[("LLM APIs&lt;br/&gt;Claude, GPT")]
+        TOOLS[("Tools/APIs&lt;br/&gt;User-Defined")]
+    end
+
+    subgraph Observability["Observability"]
+        PROM[Prometheus]
+        GRAF[Grafana]
+        OT[OpenTelemetry]
+    end
+
+    User([User/Client])
+    User --&gt;|gRPC| API
+    API --&gt;|Write/Read| DDB
+    API --&gt;|Publish Events| NATS
+    CM --&gt;|Watch| API
+    CM --&gt;|Reconcile| DDB
+    SCH --&gt;|Consume Queue| NATS
+    SCH --&gt;|Update Status| DDB
+    SCH --&gt;|Assign Task| NS1
+    SCH --&gt;|Assign Task| NS2
+    NS1 --&gt;|Spawn/Manage| AR1
+    NS1 --&gt;|Spawn/Manage| AR2
+    NS2 --&gt;|Spawn/Manage| AR3
+    AR1 --&gt;|Status Updates| CM
+    AR2 --&gt;|Status Updates| CM
+    AR3 --&gt;|Status Updates| CM
+    AR1 --&gt;|LLM Calls| LLM
+    AR2 --&gt;|LLM Calls| LLM
+    AR3 --&gt;|LLM Calls| LLM
+    AR1 --&gt;|Tool Calls| TOOLS
+    AR2 --&gt;|Tool Calls| TOOLS
+    AR1 --&gt;|Store Checkpoints| S3
+    AR2 --&gt;|Store Checkpoints| S3
+    AR3 --&gt;|Store Checkpoints| S3
+    API --&gt;|Metrics| PROM
+    CM --&gt;|Metrics| PROM
+    SCH --&gt;|Metrics| PROM
+    NS1 --&gt;|Metrics| PROM
+    NS2 --&gt;|Metrics| PROM
+    AR1 --&gt;|Traces| OT
+    AR2 --&gt;|Traces| OT
+    AR3 --&gt;|Traces| OT
+    PROM --&gt;|Visualize| GRAF
+
+    classDef controlPlane fill:#e1f5ff,stroke:#0288d1,stroke-width:2px
+    classDef dataPlane fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef stateLayer fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef external fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef observability fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+
+    class API,SCH,CM controlPlane
+    class NS1,NS2,AR1,AR2,AR3 dataPlane
+    class DDB,S3,NATS stateLayer
+    class LLM,TOOLS external
+    class PROM,GRAF,OT observability</div>
+<hr />
+<h2 id="nous-resources-vs-kubernetes-analogy">Nous Resources vs Kubernetes Analogy<a class="headerlink" href="#nous-resources-vs-kubernetes-analogy" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Nous Resource</th>
+<th>Kubernetes Analog</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AgentDefinition</strong></td>
+<td>Deployment</td>
+<td>Declares desired state of an agent type (model, tools, scaling policy)</td>
+</tr>
+<tr>
+<td><strong>AgentTask</strong></td>
+<td>Job</td>
+<td>Unit of work to be executed by an agent</td>
+</tr>
+<tr>
+<td><strong>AgentInstance</strong></td>
+<td>Pod</td>
+<td>Running instance of an agent (managed by controller, not user)</td>
+</tr>
+<tr>
+<td><strong>Namespace</strong></td>
+<td>Namespace</td>
+<td>Multi-tenancy isolation boundary</td>
+</tr>
+<tr>
+<td><strong>Controller</strong></td>
+<td>Controller</td>
+<td>Reconciliation loop aligning actual state with desired state</td>
+</tr>
+<tr>
+<td><strong>Scheduler</strong></td>
+<td>kube-scheduler</td>
+<td>Matches tasks to nodes based on capacity and constraints</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="how-agents-differ-from-containers">How Agents Differ from Containers<a class="headerlink" href="#how-agents-differ-from-containers" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Containers (Kubernetes)</th>
+<th>Agents (Nous)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Determinism</strong></td>
+<td>Deterministic (same input → same output)</td>
+<td>Probabilistic (LLM non-determinism)</td>
+</tr>
+<tr>
+<td><strong>State</strong></td>
+<td>Externalized state (ConfigMaps, Secrets)</td>
+<td>Complex cognitive state (context window, reasoning history)</td>
+</tr>
+<tr>
+<td><strong>Health Checks</strong></td>
+<td>Binary (alive/dead via TCP/HTTP probe)</td>
+<td>Semantic (quality score, cost ceiling, reasoning coherence)</td>
+</tr>
+<tr>
+<td><strong>Scheduling</strong></td>
+<td>Simple bin packing (CPU, memory, GPU)</td>
+<td>Multi-objective (cost, quality, latency trade-offs)</td>
+</tr>
+<tr>
+<td><strong>Failure Recovery</strong></td>
+<td>Restart container</td>
+<td>Checkpoint restoration, reasoning state recovery</td>
+</tr>
+<tr>
+<td><strong>Scaling Metric</strong></td>
+<td>Resource utilization (CPU, memory)</td>
+<td>Queue depth, quality threshold, cost budget</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="component-descriptions">Component Descriptions<a class="headerlink" href="#component-descriptions" title="Permanent link">&para;</a></h2>
+<h3 id="control-plane">Control Plane<a class="headerlink" href="#control-plane" title="Permanent link">&para;</a></h3>
+<h4 id="nous-api-server">nous-api-server<a class="headerlink" href="#nous-api-server" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Role</strong>: User entrypoint for the Nous platform</li>
+<li><strong>Responsibilities</strong>:</li>
+<li>gRPC API server implementing <code>NousAPI</code> service</li>
+<li>CRUD operations for AgentDefinitions and AgentTasks</li>
+<li>Watch streams for controllers (server-side streaming gRPC)</li>
+<li>Resource validation and admission control</li>
+<li>Optimistic concurrency via <code>resource_version</code> (ULIDs)</li>
+<li><strong>Storage</strong>: DynamoDB (via StateStore interface)</li>
+<li><strong>Phase</strong>: Phase 1</li>
+</ul>
+<h4 id="nous-scheduler">nous-scheduler<a class="headerlink" href="#nous-scheduler" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Role</strong>: Multi-objective task-to-node matching</li>
+<li><strong>Responsibilities</strong>:</li>
+<li>Consume task queue from NATS</li>
+<li>Evaluate nodes based on capacity, affinity rules, cost constraints</li>
+<li>Assign tasks to nodes using multi-objective optimization</li>
+<li>Update task status (Pending → Scheduled)</li>
+<li><strong>Scheduling Criteria</strong>:</li>
+<li>Task priority (Critical &gt; High &gt; Medium &gt; Low)</li>
+<li>Node capacity (available CPU, memory, tokens/min)</li>
+<li>Agent selector matching (task → agent definition)</li>
+<li>Affinity/anti-affinity rules</li>
+<li><strong>Phase</strong>: Phase 2</li>
+</ul>
+<h4 id="nous-controller-manager">nous-controller-manager<a class="headerlink" href="#nous-controller-manager" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Role</strong>: Reconciliation controllers ensuring desired state alignment</li>
+<li><strong>Responsibilities</strong>:</li>
+<li><strong>AgentController</strong>: Reconcile AgentDefinition → AgentInstances (scale up/down)</li>
+<li><strong>TaskController</strong>: Monitor task timeouts, retries</li>
+<li><strong>HealthController</strong>: Evaluate agent health (quality score, cost, error rate)</li>
+<li><strong>RecoveryController</strong>: Handle agent failures (restart, replace, checkpoint restoration)</li>
+<li><strong>Leader Election</strong>: DynamoDB lease with fencing tokens</li>
+<li><strong>Phase</strong>: Phase 1</li>
+</ul>
+<hr />
+<h3 id="data-plane">Data Plane<a class="headerlink" href="#data-plane" title="Permanent link">&para;</a></h3>
+<h4 id="nous-node-supervisor">nous-node-supervisor<a class="headerlink" href="#nous-node-supervisor" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Role</strong>: Per-node daemon managing agent runtime processes</li>
+<li><strong>Responsibilities</strong>:</li>
+<li>Spawn/terminate <code>nous-agent-runtime</code> processes</li>
+<li>Report node capacity to control plane</li>
+<li>Health checks on local agents</li>
+<li>Process isolation and resource limits enforcement</li>
+<li><strong>Phase</strong>: Phase 2</li>
+</ul>
+<h4 id="nous-agent-runtime">nous-agent-runtime<a class="headerlink" href="#nous-agent-runtime" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Role</strong>: Sandboxed agent execution environment</li>
+<li><strong>Responsibilities</strong>:</li>
+<li>Execute agent tasks (LLM calls, tool invocations)</li>
+<li>Manage conversation context and cognitive state</li>
+<li>Checkpoint reasoning state to S3</li>
+<li>Report task metrics (tokens, cost, quality, latency)</li>
+<li>Publish status updates to controllers</li>
+<li><strong>Phase</strong>: Phase 2</li>
+</ul>
+<hr />
+<h3 id="state-layer">State Layer<a class="headerlink" href="#state-layer" title="Permanent link">&para;</a></h3>
+<h4 id="dynamodb">DynamoDB<a class="headerlink" href="#dynamodb" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Role</strong>: Primary state store for all Nous resources</li>
+<li><strong>Design</strong>: Single-table design with composite keys (PK/SK)</li>
+<li><strong>Features</strong>:</li>
+<li>Optimistic concurrency via conditional writes</li>
+<li>DynamoDB Streams for Watch API (Phase 2)</li>
+<li>TTL for lease expiration</li>
+<li>GSIs for listing and filtering</li>
+<li><strong>Phase</strong>: Phase 1</li>
+</ul>
+<h4 id="s3">S3<a class="headerlink" href="#s3" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Role</strong>: Blob storage for cognitive state</li>
+<li><strong>Use Cases</strong>:</li>
+<li>Conversation history (large, grows over time)</li>
+<li>Checkpoints (reasoning state snapshots)</li>
+<li>Result artifacts (large outputs)</li>
+<li><strong>Phase</strong>: Phase 1</li>
+</ul>
+<h4 id="nats-jetstream">NATS JetStream<a class="headerlink" href="#nats-jetstream" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Role</strong>: Durable message bus for inter-service communication</li>
+<li><strong>Use Cases</strong>:</li>
+<li>Task queue (Scheduler consumes)</li>
+<li>Watch events (multi-instance API servers, Phase 2)</li>
+<li>Inter-agent messaging (Phase 3)</li>
+<li><strong>Phase</strong>: Phase 2</li>
+</ul>
+<hr />
+<h2 id="technology-stack">Technology Stack<a class="headerlink" href="#technology-stack" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Technology</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Language</strong></td>
+<td>Go 1.22+</td>
+<td>All control plane and data plane services</td>
+</tr>
+<tr>
+<td><strong>Proto</strong></td>
+<td>Protobuf v3 + Buf</td>
+<td>Service contracts and type definitions</td>
+</tr>
+<tr>
+<td><strong>State Store</strong></td>
+<td>DynamoDB</td>
+<td>Primary state storage (pluggable via interface)</td>
+</tr>
+<tr>
+<td><strong>Blob Store</strong></td>
+<td>S3</td>
+<td>Cognitive state, checkpoints, large artifacts</td>
+</tr>
+<tr>
+<td><strong>Messaging</strong></td>
+<td>NATS JetStream</td>
+<td>Task queue, Watch events, inter-agent comms</td>
+</tr>
+<tr>
+<td><strong>Infrastructure</strong></td>
+<td>Pulumi (TypeScript)</td>
+<td>AWS deployment automation</td>
+</tr>
+<tr>
+<td><strong>Observability</strong></td>
+<td>Prometheus + OpenTelemetry + Grafana</td>
+<td>Metrics, traces, dashboards</td>
+</tr>
+<tr>
+<td><strong>CI/CD</strong></td>
+<td>GitHub Actions</td>
+<td>Build, test, deploy pipelines</td>
+</tr>
+<tr>
+<td><strong>Container Runtime</strong></td>
+<td>ECS (AWS Fargate)</td>
+<td>Serverless container orchestration</td>
+</tr>
+<tr>
+<td><strong>Local Dev</strong></td>
+<td>Docker Compose + DynamoDB Local</td>
+<td>Development environment</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="deployment-architecture">Deployment Architecture<a class="headerlink" href="#deployment-architecture" title="Permanent link">&para;</a></h2>
+<h3 id="development">Development<a class="headerlink" href="#development" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Platform</strong>: kind/k3s (local Kubernetes) OR docker-compose</li>
+<li><strong>State</strong>: DynamoDB Local</li>
+<li><strong>Storage</strong>: LocalStack S3</li>
+<li><strong>Messaging</strong>: NATS container</li>
+</ul>
+<h3 id="staging">Staging<a class="headerlink" href="#staging" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Platform</strong>: Single-AZ EKS (AWS)</li>
+<li><strong>State</strong>: DynamoDB on-demand</li>
+<li><strong>Storage</strong>: S3</li>
+<li><strong>Messaging</strong>: NATS JetStream on ECS</li>
+</ul>
+<h3 id="production">Production<a class="headerlink" href="#production" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Platform</strong>: Multi-AZ EKS (AWS)</li>
+<li><strong>State</strong>: DynamoDB provisioned capacity</li>
+<li><strong>Storage</strong>: S3 with lifecycle policies</li>
+<li><strong>Messaging</strong>: NATS JetStream on ECS (HA cluster)</li>
+<li><strong>Observability</strong>: Prometheus + Grafana + CloudWatch</li>
+</ul>
+<hr />
+<h2 id="state-management-model">State Management Model<a class="headerlink" href="#state-management-model" title="Permanent link">&para;</a></h2>
+<p>Nous uses a <strong>three-dimensional state model</strong>:</p>
+<h3 id="1-infrastructure-state">1. Infrastructure State<a class="headerlink" href="#1-infrastructure-state" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Agent instance phase (Pending, Starting, Ready, Running, Terminating, Failed)</li>
+<li>Node capacity (CPU, memory, tokens/minute)</li>
+<li>Task phase (Pending, Scheduled, Running, Succeeded, Failed)</li>
+</ul>
+<h3 id="2-cognitive-state">2. Cognitive State<a class="headerlink" href="#2-cognitive-state" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Conversation context (LLM message history)</li>
+<li>Reasoning depth (how many reasoning steps)</li>
+<li>Context utilization (percentage of context window filled)</li>
+<li>Active tasks count</li>
+</ul>
+<h3 id="3-behavioral-state">3. Behavioral State<a class="headerlink" href="#3-behavioral-state" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Task metrics (tokens, cost, latency, quality)</li>
+<li>Health indicators (error rate, success rate, quality floor violations)</li>
+<li>Instance metrics (tasks completed, avg quality, total cost)</li>
+</ul>
+<p><strong>Storage</strong>:
+- Infrastructure state → DynamoDB (fast access, indexed queries)
+- Cognitive state → S3 (large blobs, infrequent reads)
+- Behavioral metrics → Prometheus (time-series, aggregations)</p>
+<hr />
+<h2 id="multi-tenancy">Multi-Tenancy<a class="headerlink" href="#multi-tenancy" title="Permanent link">&para;</a></h2>
+<p><strong>Isolation Mechanism</strong>: Kubernetes-style namespaces</p>
+<ul>
+<li>Each team/project gets a dedicated namespace</li>
+<li>Resources scoped to namespace (e.g., <code>NS#production#AGENTDEF#researcher</code>)</li>
+<li>Cross-namespace references prohibited</li>
+<li>Namespace-level resource quotas (future)</li>
+</ul>
+<p><strong>Default Namespaces</strong>:
+- <code>default</code> — User workloads
+- <code>nous-system</code> — Platform components (reserved)</p>
+<hr />
+<h2 id="communication-patterns">Communication Patterns<a class="headerlink" href="#communication-patterns" title="Permanent link">&para;</a></h2>
+<h3 id="synchronous-grpc">Synchronous (gRPC)<a class="headerlink" href="#synchronous-grpc" title="Permanent link">&para;</a></h3>
+<ul>
+<li>User → API Server (CRUD operations)</li>
+<li>Controller → API Server (Watch streams)</li>
+<li>Scheduler → Node Supervisor (task assignment)</li>
+</ul>
+<h3 id="asynchronous-nats">Asynchronous (NATS)<a class="headerlink" href="#asynchronous-nats" title="Permanent link">&para;</a></h3>
+<ul>
+<li>API Server → Scheduler (task submission via queue)</li>
+<li>Agent Runtime → Controller (status updates via pub/sub)</li>
+<li>Watch events (Phase 2, multi-instance API servers)</li>
+</ul>
+<h3 id="storage-mediated">Storage-Mediated<a class="headerlink" href="#storage-mediated" title="Permanent link">&para;</a></h3>
+<ul>
+<li>All services → DynamoDB (read/write state)</li>
+<li>Agent Runtime → S3 (write checkpoints, read on recovery)</li>
+</ul>
+<hr />
+<h2 id="observability">Observability<a class="headerlink" href="#observability" title="Permanent link">&para;</a></h2>
+<h3 id="metrics-prometheus">Metrics (Prometheus)<a class="headerlink" href="#metrics-prometheus" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>nous_grpc_request_duration_seconds</code> — Request latency</li>
+<li><code>nous_reconciliation_duration_seconds</code> — Controller performance</li>
+<li><code>nous_agent_instances_total{definition, phase}</code> — Agent inventory</li>
+<li><code>nous_task_duration_seconds{priority}</code> — Task execution time</li>
+<li><code>nous_llm_api_cost_dollars_total{provider, model}</code> — LLM cost tracking</li>
+</ul>
+<h3 id="tracing-opentelemetry">Tracing (OpenTelemetry)<a class="headerlink" href="#tracing-opentelemetry" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Full request tracing: User → API → Scheduler → Node → Agent → LLM</li>
+<li>Distributed context propagation</li>
+<li>Span attributes: task_id, agent_id, model, cost</li>
+</ul>
+<h3 id="logging-structured">Logging (Structured)<a class="headerlink" href="#logging-structured" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>slog</code> (Go 1.21+ stdlib)</li>
+<li>JSON format in production</li>
+<li>Fields: timestamp, level, component, task_id, agent_id, message</li>
+</ul>
+<hr />
+<h2 id="security">Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h2>
+<h3 id="secrets-management">Secrets Management<a class="headerlink" href="#secrets-management" title="Permanent link">&para;</a></h3>
+<ul>
+<li>LLM API keys → AWS Secrets Manager</li>
+<li>Auto-rotation via Lambda</li>
+<li>Injected as environment variables</li>
+</ul>
+<h3 id="iam-roles">IAM Roles<a class="headerlink" href="#iam-roles" title="Permanent link">&para;</a></h3>
+<ul>
+<li>ECS tasks use IAM roles (no API keys)</li>
+<li>Least-privilege policies per service</li>
+<li>S3 bucket policies enforce encryption</li>
+</ul>
+<h3 id="multi-tenancy-isolation">Multi-Tenancy Isolation<a class="headerlink" href="#multi-tenancy-isolation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Namespace-scoped access (future: RBAC)</li>
+<li>Network policies between namespaces</li>
+</ul>
+<hr />
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../dependency-graph/">dependency-graph.md</a> — Inter-repo relationships</li>
+<li><a href="../data-model/">data-model.md</a> — DynamoDB schema</li>
+<li><a href="../../adr/001-standalone-control-plane/">ADR-001</a> — Standalone control plane decision</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../.." class="md-footer__link md-footer__link--prev" aria-label="Previous: Home">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Home
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../visual-architecture/" class="md-footer__link md-footer__link--next" aria-label="Next: Visual Architecture">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Visual Architecture
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 Nous Project Contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/nousproj" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "navigation.footer", "toc.follow", "content.code.copy", "content.code.annotate", "content.tabs.link", "search.highlight", "search.share", "search.suggest"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.60a45f97.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@11/dist/mermaid.min.js"></script>
+      
+        <script src="../../javascripts/extra.js"></script>
+      
+    
+  </body>
+</html>

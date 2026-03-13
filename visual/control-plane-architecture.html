@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nous — Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+  :root {
+    --bg: #08090d;
+    --surface: rgba(255,255,255,0.025);
+    --surface-hover: rgba(255,255,255,0.05);
+    --border: rgba(255,255,255,0.06);
+    --border-hover: rgba(255,255,255,0.14);
+    --text: #d8d8e3;
+    --text-dim: #6a6a7e;
+    --text-muted: #3a3a4d;
+    --blue: #5ba0f5;
+    --cyan: #2dd4bf;
+    --green: #4ade80;
+    --amber: #facc15;
+    --purple: #a78bfa;
+    --rose: #fb7185;
+    --orange: #fb923c;
+    --glow-blue: rgba(91,160,245,0.12);
+    --glow-cyan: rgba(45,212,191,0.12);
+    --glow-green: rgba(74,222,128,0.12);
+    --glow-amber: rgba(250,204,21,0.12);
+    --glow-purple: rgba(167,139,250,0.12);
+    --glow-rose: rgba(251,113,133,0.12);
+    --glow-orange: rgba(251,146,60,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      linear-gradient(rgba(91,160,245,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(91,160,245,0.015) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+  }
+
+  .page { max-width: 1200px; margin: 0 auto; padding: 40px 24px 60px; position: relative; z-index: 1; }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: fadeUp .7s ease forwards;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 14px; border-radius: 100px;
+    background: rgba(91,160,245,0.06);
+    border: 1px solid rgba(91,160,245,0.18);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 500; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--blue); margin-bottom: 16px;
+  }
+  .badge .dot { width: 5px; height: 5px; background: var(--green); border-radius: 50%; animation: pulse 2s ease infinite; }
+  .header h1 {
+    font-size: 44px; font-weight: 800; letter-spacing: -.03em;
+    background: linear-gradient(135deg, #fff 20%, var(--blue) 60%, var(--cyan) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header p { font-size: 15px; color: var(--text-dim); font-weight: 300; margin-top: 4px; }
+
+  /* ── Controls ── */
+  .controls {
+    display: flex; justify-content: center; gap: 6px; margin-bottom: 36px; flex-wrap: wrap;
+    opacity: 0; animation: fadeUp .7s ease .1s forwards;
+  }
+  .ctrl {
+    padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    cursor: pointer; transition: all .2s;
+  }
+  .ctrl:hover, .ctrl.on { border-color: var(--blue); color: var(--blue); background: var(--glow-blue); }
+
+  /* ── Architecture layout ── */
+  .arch {
+    display: flex; flex-direction: column; gap: 20px;
+    opacity: 0; animation: fadeUp .7s ease .2s forwards;
+  }
+
+  /* Row helpers */
+  .row { display: flex; gap: 20px; justify-content: center; }
+  .row.stretch { align-items: stretch; }
+
+  /* ── Card ── */
+  .card {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    backdrop-filter: blur(8px);
+    padding: 20px 24px;
+    transition: all .3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent, var(--blue)), transparent);
+    opacity: 0; transition: opacity .3s;
+  }
+  .card:hover { border-color: var(--border-hover); background: var(--surface-hover); }
+  .card:hover::before { opacity: 1; }
+
+  .card-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 18px; margin-bottom: 12px;
+    background: var(--icon-bg, var(--glow-blue));
+  }
+
+  .card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; font-weight: 600;
+    letter-spacing: .04em; color: var(--accent, var(--blue));
+    margin-bottom: 4px;
+  }
+  .card-desc { font-size: 12px; color: var(--text-dim); font-weight: 300; line-height: 1.6; }
+
+  .pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+  .pill {
+    padding: 3px 9px; border-radius: 5px;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-dim);
+  }
+
+  .tag {
+    display: inline-block; margin-top: 10px; padding: 2px 9px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 500;
+    background: var(--icon-bg, var(--glow-blue));
+    color: var(--accent, var(--blue));
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+
+  /* ── Connector arrows between rows ── */
+  .connectors {
+    display: flex; justify-content: center; align-items: center;
+    height: 36px; position: relative;
+  }
+  .conn-line {
+    width: 2px; height: 100%;
+    position: relative;
+    margin: 0 60px;
+  }
+  .conn-line::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--color, var(--blue));
+    opacity: 0.2;
+  }
+  .conn-dot {
+    position: absolute;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--color, var(--blue));
+    left: -2px;
+    animation: travelDown 2.5s ease-in-out infinite;
+    box-shadow: 0 0 10px var(--color, var(--blue));
+  }
+  .conn-label {
+    position: absolute;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: var(--text-muted);
+    white-space: nowrap;
+    left: 12px; top: 50%; transform: translateY(-50%);
+  }
+
+  /* ── Section labels ── */
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: .15em; text-transform: uppercase;
+    color: var(--text-muted); text-align: center; margin-bottom: -10px;
+  }
+
+  /* ── Sizing ── */
+  .w-full { flex: 1; min-width: 0; }
+  .w-half { flex: 1; min-width: 0; }
+  .w-narrow { flex: 0 0 200px; }
+  .w-center { flex: 0 0 480px; }
+
+  /* ── Nested agent boxes ── */
+  .agent-slots {
+    display: flex; gap: 8px; margin-top: 12px;
+  }
+  .agent-slot {
+    flex: 1; padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px dashed rgba(74,222,128,0.2);
+    background: rgba(74,222,128,0.03);
+    text-align: center;
+  }
+  .agent-slot-icon { font-size: 14px; margin-bottom: 4px; }
+  .agent-slot-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px; color: var(--green); opacity: 0.7;
+  }
+
+  /* ── State layer special ── */
+  .state-grid { display: flex; gap: 12px; margin-top: 12px; }
+  .state-item {
+    flex: 1; padding: 10px 12px; border-radius: 8px;
+    border: 1px solid rgba(45,212,191,0.12);
+    background: rgba(45,212,191,0.03);
+    text-align: center;
+  }
+  .state-item-icon { font-size: 16px; margin-bottom: 6px; }
+  .state-item-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--cyan); font-weight: 500;
+  }
+  .state-item-desc { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── Ext systems ── */
+  .ext-grid { display: flex; gap: 12px; margin-top: 12px; }
+  .ext-item {
+    flex: 1; padding: 8px; border-radius: 6px;
+    border: 1px solid rgba(251,113,133,0.1);
+    background: rgba(251,113,133,0.02);
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: var(--rose); opacity: 0.8;
+  }
+
+  /* ── Flow highlight mode ── */
+  .arch.flow-mode .card { opacity: 0.12; transition: opacity .4s; }
+  .arch.flow-mode .card.flow-on { opacity: 1; }
+  .arch.flow-mode .connectors { opacity: 0.15; }
+  .arch.flow-mode .connectors.flow-on { opacity: 1; }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex; justify-content: center; flex-wrap: wrap; gap: 18px;
+    margin-top: 36px; opacity: 0; animation: fadeUp .7s ease .5s forwards;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim);
+  }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ── Keyframes ── */
+  @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes pulse { 0%,100% { box-shadow:0 0 0 0 rgba(74,222,128,.4); } 50% { box-shadow:0 0 0 5px rgba(74,222,128,0); } }
+  @keyframes travelDown {
+    0% { top: -6px; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: calc(100% - 0px); opacity: 0; }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .row { flex-direction: column; }
+    .w-narrow, .w-center { flex: 1; }
+    .header h1 { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header class="header">
+    <div class="badge"><span class="dot"></span> System Architecture</div>
+    <h1>Nous</h1>
+    <p>The Control Plane for AI Agents</p>
+  </header>
+
+  <div class="controls" id="controls">
+    <button class="ctrl on" data-flow="all">All</button>
+    <button class="ctrl" data-flow="task">Task Flow</button>
+    <button class="ctrl" data-flow="schedule">Scheduling</button>
+    <button class="ctrl" data-flow="exec">Execution</button>
+    <button class="ctrl" data-flow="state">State Layer</button>
+    <button class="ctrl" data-flow="observe">Observability</button>
+  </div>
+
+  <div class="arch" id="arch">
+
+    <!-- ═══ TIER 0: User ═══ -->
+    <div class="section-label">Client Layer</div>
+    <div class="row" style="justify-content:center;">
+      <div class="card w-center" style="--accent:var(--blue);--icon-bg:var(--glow-blue);" data-f="task schedule all">
+        <div class="card-icon">👤</div>
+        <div class="card-label">Authenticated User / Client</div>
+        <div class="card-desc">Submits declarative task specifications via gRPC. Receives watch streams for real-time status.</div>
+        <div class="pills">
+          <span class="pill">nous-cli</span>
+          <span class="pill">gRPC client</span>
+          <span class="pill">Dashboard</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connector: User → API -->
+    <div class="connectors flow-on" data-f="task all">
+      <div class="conn-line" style="--color:var(--blue);">
+        <div class="conn-dot" style="--color:var(--blue);"></div>
+        <span class="conn-label">gRPC</span>
+      </div>
+    </div>
+
+    <!-- ═══ TIER 1: API Server ═══ -->
+    <div class="section-label">API Layer</div>
+    <div class="row" style="justify-content:center;">
+      <div class="card w-center" style="--accent:var(--blue);--icon-bg:var(--glow-blue);" data-f="task schedule state all">
+        <div class="card-icon">⚡</div>
+        <div class="card-label">nous-api-server</div>
+        <div class="card-desc">Central gateway — gRPC API with watch streams, admission control, and validation. All state mutations flow through here.</div>
+        <div class="pills">
+          <span class="pill">gRPC API</span>
+          <span class="pill">Watch Streams</span>
+          <span class="pill">Admission</span>
+          <span class="pill">108 tests ✓</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connector: API → Control Plane -->
+    <div class="connectors flow-on" data-f="task schedule all" style="height:44px;">
+      <div class="conn-line" style="--color:var(--purple); margin:0 120px;">
+        <div class="conn-dot" style="--color:var(--purple); animation-delay:0s;"></div>
+        <span class="conn-label">watch</span>
+      </div>
+      <div class="conn-line" style="--color:var(--amber); margin:0 120px;">
+        <div class="conn-dot" style="--color:var(--amber); animation-delay:.6s;"></div>
+        <span class="conn-label">consume</span>
+      </div>
+    </div>
+
+    <!-- ═══ TIER 2: Control Plane ═══ -->
+    <div class="section-label">Control Plane</div>
+    <div class="row stretch">
+      <!-- Observability (left) -->
+      <div class="card w-narrow" style="--accent:var(--orange);--icon-bg:var(--glow-orange);" data-f="observe all">
+        <div class="card-icon">📈</div>
+        <div class="card-label">Observability</div>
+        <div class="card-desc">Prometheus metrics &amp; distributed tracing</div>
+        <div class="pills">
+          <span class="pill">Prometheus</span>
+          <span class="pill">Grafana</span>
+          <span class="pill">Traces</span>
+        </div>
+        <div class="tag" style="--accent:var(--orange);--icon-bg:var(--glow-orange);">metrics + visualize</div>
+      </div>
+
+      <!-- Controller Manager -->
+      <div class="card w-half" style="--accent:var(--purple);--icon-bg:var(--glow-purple);" data-f="task state all">
+        <div class="card-icon">🔄</div>
+        <div class="card-label">nous-controller-manager</div>
+        <div class="card-desc">Reconciliation loops driving actual → desired state. Self-healing agent lifecycle management.</div>
+        <div class="pills">
+          <span class="pill">AgentController</span>
+          <span class="pill">TaskController</span>
+          <span class="pill">HealthController</span>
+          <span class="pill">RecoveryController</span>
+          <span class="pill">34 tests ✓</span>
+        </div>
+      </div>
+
+      <!-- Scheduler -->
+      <div class="card w-half" style="--accent:var(--amber);--icon-bg:var(--glow-amber);" data-f="schedule exec all">
+        <div class="card-icon">📊</div>
+        <div class="card-label">nous-scheduler</div>
+        <div class="card-desc">Multi-objective optimization across cost, quality, and latency. Assigns tasks to nodes.</div>
+        <div class="pills">
+          <span class="pill">Filter → Score → Rank → Bind</span>
+          <span class="pill">Preemption</span>
+          <span class="pill">Affinity</span>
+          <span class="pill">Gang Scheduling</span>
+          <span class="pill">88 tests ✓</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connector: Control Plane → State Layer -->
+    <div class="connectors flow-on" data-f="state all">
+      <div class="conn-line" style="--color:var(--cyan);">
+        <div class="conn-dot" style="--color:var(--cyan);"></div>
+        <span class="conn-label">read/write state</span>
+      </div>
+      <div class="conn-line" style="--color:var(--cyan); margin-left:200px;">
+        <div class="conn-dot" style="--color:var(--cyan); animation-delay:.8s;"></div>
+        <span class="conn-label">publish events</span>
+      </div>
+    </div>
+
+    <!-- ═══ TIER 3: State Layer ═══ -->
+    <div class="section-label">State Layer</div>
+    <div class="row">
+      <div class="card w-full" style="--accent:var(--cyan);--icon-bg:var(--glow-cyan);" data-f="state all">
+        <div class="card-icon">💾</div>
+        <div class="card-label">Distributed State Layer</div>
+        <div class="card-desc">Cognitive state persistence, event-driven messaging, and checkpoint storage for agent recovery.</div>
+        <div class="state-grid">
+          <div class="state-item">
+            <div class="state-item-icon">🗃️</div>
+            <div class="state-item-name">DynamoDB</div>
+            <div class="state-item-desc">Single-table design</div>
+          </div>
+          <div class="state-item">
+            <div class="state-item-icon">📦</div>
+            <div class="state-item-name">S3</div>
+            <div class="state-item-desc">Cognitive state blobs</div>
+          </div>
+          <div class="state-item">
+            <div class="state-item-icon">📡</div>
+            <div class="state-item-name">NATS JetStream</div>
+            <div class="state-item-desc">Message bus</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connector: State → Nodes -->
+    <div class="connectors flow-on" data-f="exec state all">
+      <div class="conn-line" style="--color:var(--green);">
+        <div class="conn-dot" style="--color:var(--green);"></div>
+        <span class="conn-label">assign task</span>
+      </div>
+      <div class="conn-line" style="--color:var(--green); margin-left:240px;">
+        <div class="conn-dot" style="--color:var(--green); animation-delay:1s;"></div>
+        <span class="conn-label">status updates</span>
+      </div>
+    </div>
+
+    <!-- ═══ TIER 4: Node Supervisors ═══ -->
+    <div class="section-label">Runtime Layer</div>
+    <div class="row stretch">
+      <!-- Node 1 -->
+      <div class="card w-half" style="--accent:var(--green);--icon-bg:var(--glow-green);" data-f="exec observe all">
+        <div class="card-icon">🖥️</div>
+        <div class="card-label">Node 1 — nous-node-supervisor</div>
+        <div class="card-desc">Spawns and manages agent runtime instances. Reports health and status back to control plane.</div>
+        <div class="agent-slots">
+          <div class="agent-slot">
+            <div class="agent-slot-icon">🤖</div>
+            <div class="agent-slot-label">agent-runtime</div>
+          </div>
+          <div class="agent-slot">
+            <div class="agent-slot-icon">🤖</div>
+            <div class="agent-slot-label">agent-runtime</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Node 2 -->
+      <div class="card w-half" style="--accent:var(--green);--icon-bg:var(--glow-green);" data-f="exec observe all">
+        <div class="card-icon">🖥️</div>
+        <div class="card-label">Node 2 — nous-node-supervisor</div>
+        <div class="card-desc">Independent node with local health monitoring and cognitive state checkpointing.</div>
+        <div class="agent-slots">
+          <div class="agent-slot">
+            <div class="agent-slot-icon">🤖</div>
+            <div class="agent-slot-label">agent-runtime</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connector: Nodes → External -->
+    <div class="connectors flow-on" data-f="exec all">
+      <div class="conn-line" style="--color:var(--rose);">
+        <div class="conn-dot" style="--color:var(--rose);"></div>
+        <span class="conn-label">LLM calls</span>
+      </div>
+      <div class="conn-line" style="--color:var(--rose); margin-left:200px;">
+        <div class="conn-dot" style="--color:var(--rose); animation-delay:.5s;"></div>
+        <span class="conn-label">tool calls</span>
+      </div>
+    </div>
+
+    <!-- ═══ TIER 5: External Systems ═══ -->
+    <div class="section-label">External Systems</div>
+    <div class="row stretch">
+      <div class="card w-half" style="--accent:var(--rose);--icon-bg:var(--glow-rose);" data-f="exec all">
+        <div class="card-icon">🧠</div>
+        <div class="card-label">LLM APIs</div>
+        <div class="card-desc">External inference providers with per-token cost tracking.</div>
+        <div class="ext-grid">
+          <div class="ext-item">Claude</div>
+          <div class="ext-item">GPT</div>
+          <div class="ext-item">Gemini</div>
+        </div>
+      </div>
+      <div class="card w-half" style="--accent:var(--rose);--icon-bg:var(--glow-rose);" data-f="exec all">
+        <div class="card-icon">🔧</div>
+        <div class="card-label">Tools / APIs</div>
+        <div class="card-desc">User-defined integrations — databases, file systems, external services.</div>
+        <div class="tag" style="--accent:var(--rose);--icon-bg:var(--glow-rose);">user-defined</div>
+      </div>
+    </div>
+
+  </div><!-- /arch -->
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>API / gRPC</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>Reconciliation</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Scheduling</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cyan)"></div>State / Checkpoints</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Agent Execution</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--rose)"></div>External Calls</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>Observability</div>
+  </div>
+</div>
+
+<script>
+  const arch = document.getElementById('arch');
+  const btns = document.querySelectorAll('.ctrl');
+  const cards = arch.querySelectorAll('.card');
+  const conns = arch.querySelectorAll('.connectors');
+
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      const flow = btn.dataset.flow;
+
+      if (flow === 'all') {
+        arch.classList.remove('flow-mode');
+        cards.forEach(c => c.classList.remove('flow-on'));
+        conns.forEach(c => c.classList.remove('flow-on'));
+        return;
+      }
+
+      arch.classList.add('flow-mode');
+
+      cards.forEach(c => {
+        const fs = (c.dataset.f || '').split(' ');
+        c.classList.toggle('flow-on', fs.includes(flow));
+      });
+
+      conns.forEach(c => {
+        const fs = (c.dataset.f || '').split(' ');
+        c.classList.toggle('flow-on', fs.includes(flow));
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

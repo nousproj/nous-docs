@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nous — Reconciliation Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-body: 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+    --bg: #f0f4ff;
+    --surface: #ffffff;
+    --surface2: #eef2ff;
+    --surface-elevated: #f8faff;
+    --border: rgba(99,102,241,0.12);
+    --border-bright: rgba(99,102,241,0.25);
+    --text: #1e1b4b;
+    --text-dim: #6b7280;
+    --accent: #4f46e5;
+    --accent-dim: rgba(79,70,229,0.08);
+    --green: #059669;
+    --green-dim: rgba(5,150,105,0.08);
+    --amber: #d97706;
+    --amber-dim: rgba(217,119,6,0.08);
+    --red: #dc2626;
+    --red-dim: rgba(220,38,38,0.08);
+    --teal: #0891b2;
+    --teal-dim: rgba(8,145,178,0.08);
+    --purple: #7c3aed;
+    --purple-dim: rgba(124,58,237,0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d0f1a;
+      --surface: #131625;
+      --surface2: #1a1e33;
+      --surface-elevated: #171b2e;
+      --border: rgba(129,140,248,0.1);
+      --border-bright: rgba(129,140,248,0.2);
+      --text: #e0e7ff;
+      --text-dim: #818cf8;
+      --accent: #818cf8;
+      --accent-dim: rgba(129,140,248,0.12);
+      --green: #34d399;
+      --green-dim: rgba(52,211,153,0.1);
+      --amber: #fbbf24;
+      --amber-dim: rgba(251,191,36,0.1);
+      --red: #f87171;
+      --red-dim: rgba(248,113,113,0.1);
+      --teal: #22d3ee;
+      --teal-dim: rgba(34,211,238,0.1);
+      --purple: #a78bfa;
+      --purple-dim: rgba(167,139,250,0.1);
+    }
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse at 0% 30%, var(--accent-dim) 0%, transparent 50%),
+      radial-gradient(ellipse at 100% 70%, var(--purple-dim) 0%, transparent 50%);
+    color: var(--text);
+    font-family: var(--font-body);
+    padding: 40px;
+    min-height: 100vh;
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(12px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  h1 { font-size:36px; font-weight:700; letter-spacing:-0.5px; margin-bottom:4px; }
+  .subtitle { color:var(--text-dim); font-size:12px; margin-bottom:36px; font-family:var(--font-mono); }
+  .layout { display:grid; grid-template-columns:1fr; gap:0; max-width:900px; margin:0 auto; }
+
+  /* Pipeline step */
+  .step {
+    display:flex; align-items:flex-start; gap:20px;
+    animation: fadeUp 0.4s ease-out both;
+    animation-delay: calc(var(--i,0) * 0.08s);
+  }
+  .step-connector { display:flex; flex-direction:column; align-items:center; flex-shrink:0; padding-top:4px; }
+  .step-circle {
+    width:36px; height:36px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-mono); font-size:13px; font-weight:600;
+    flex-shrink:0;
+  }
+  .step-circle--trigger { background:var(--accent-dim); color:var(--accent); border:1.5px solid var(--accent); }
+  .step-circle--queue   { background:var(--teal-dim); color:var(--teal); border:1.5px solid var(--teal); }
+  .step-circle--observe { background:var(--purple-dim); color:var(--purple); border:1.5px solid var(--purple); }
+  .step-circle--diff    { background:var(--amber-dim); color:var(--amber); border:1.5px solid var(--amber); }
+  .step-circle--act     { background:var(--green-dim); color:var(--green); border:1.5px solid var(--green); }
+  .step-circle--status  { background:var(--teal-dim); color:var(--teal); border:1.5px solid var(--teal); }
+  .step-circle--error   { background:var(--red-dim); color:var(--red); border:1.5px solid var(--red); }
+  .step-line { width:2px; background:var(--border-bright); flex:1; min-height:20px; margin:4px 0; }
+  .step-body { flex:1; padding-bottom:20px; }
+  .step-title { font-size:15px; font-weight:600; margin-bottom:6px; padding-top:6px; }
+  .step-desc { font-size:13px; color:var(--text-dim); line-height:1.6; }
+  .step-code {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 10px;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+  .step-code .kw { color: var(--accent); }
+  .step-code .fn { color: var(--purple); }
+  .step-code .cm { color: var(--text-dim); }
+  .step-code .st { color: var(--green); }
+  .step-branches { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:10px; }
+  .branch {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+  }
+  .branch .b-title { font-weight:600; margin-bottom:4px; }
+  .branch .b-desc  { color:var(--text-dim); line-height:1.5; }
+  .branch--scale-up   { border-color: var(--green-dim); }
+  .branch--scale-up   .b-title { color: var(--green); }
+  .branch--scale-down { border-color: var(--red-dim); }
+  .branch--scale-down .b-title { color: var(--red); }
+  .branch--balanced   { border-color: var(--teal-dim); }
+  .branch--balanced   .b-title { color: var(--teal); }
+  .backoff-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:10px; }
+  .backoff-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .backoff-box strong { color: var(--text); }
+  .backoff-arrow { color: var(--text-dim); font-size:12px; }
+  @media (max-width:768px) {
+    body { padding:20px; }
+    .step-branches { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Nous Reconciliation Flow</h1>
+<p class="subtitle">observe → diff → act &mdash; the core control loop pattern</p>
+
+<div class="layout">
+
+  <!-- Step 1: Trigger -->
+  <div class="step" style="--i:0">
+    <div class="step-connector">
+      <div class="step-circle step-circle--trigger">1</div>
+      <div class="step-line"></div>
+    </div>
+    <div class="step-body">
+      <div class="step-title">Trigger — Watch Event or Timer</div>
+      <div class="step-desc">
+        The informer receives a <code>WatchEvent{ADDED|MODIFIED|DELETED}</code> from the
+        API server's gRPC streaming endpoint, or a periodic timer fires.
+      </div>
+      <div class="step-code">
+<span class="cm">// Watch stream client in informer</span>
+stream, _ := client.<span class="fn">WatchAgentDefinitions</span>(ctx, namespace, resourceVersion)
+<span class="kw">for</span> {
+  event, _ := stream.Recv()
+  <span class="kw">switch</span> event.Type {
+  <span class="kw">case</span> <span class="st">"ADDED"</span>, <span class="st">"MODIFIED"</span>, <span class="st">"DELETED"</span>:
+    queue.<span class="fn">Add</span>(namespace + <span class="st">"/"</span> + event.AgentDefinition.Metadata.Name)
+  }
+}
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: WorkQueue -->
+  <div class="step" style="--i:1">
+    <div class="step-connector">
+      <div class="step-circle step-circle--queue">2</div>
+      <div class="step-line"></div>
+    </div>
+    <div class="step-body">
+      <div class="step-title">WorkQueue — Rate-Limited, Deduplicating</div>
+      <div class="step-desc">
+        The key is enqueued. Multiple adds of the same key are deduplicated.
+        If the key is currently being processed, it's marked dirty and re-enqueued after <code>Done()</code>.
+      </div>
+      <div class="step-code">
+<span class="cm">// Key transitions</span>
+queue.<span class="fn">Add</span>(<span class="st">"default/researcher"</span>)  <span class="cm">// → queue: [researcher]</span>
+queue.<span class="fn">Add</span>(<span class="st">"default/researcher"</span>)  <span class="cm">// → no-op (already queued)</span>
+key := queue.<span class="fn">Get</span>()              <span class="cm">// → queue: [], processing: {researcher}</span>
+queue.<span class="fn">Add</span>(<span class="st">"default/researcher"</span>)  <span class="cm">// → dirty: {researcher}</span>
+queue.<span class="fn">Done</span>(key)                  <span class="cm">// → queue: [researcher] (re-enqueued)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Observe -->
+  <div class="step" style="--i:2">
+    <div class="step-connector">
+      <div class="step-circle step-circle--observe">3</div>
+      <div class="step-line"></div>
+    </div>
+    <div class="step-body">
+      <div class="step-title">Observe — Read Desired and Actual State</div>
+      <div class="step-desc">
+        Worker goroutine dequeues the key and reads both desired state
+        (AgentDefinition spec) and actual state (existing AgentInstances).
+      </div>
+      <div class="step-code">
+<span class="cm">// Desired state</span>
+def, _ := client.<span class="fn">GetAgentDefinition</span>(ctx, namespace, name)
+desired := def.Spec.Scaling.DesiredInstances  <span class="cm">// e.g. 2</span>
+
+<span class="cm">// Actual state</span>
+instances, _ := client.<span class="fn">ListAgentInstances</span>(ctx, namespace, name)
+actual := len(instances)  <span class="cm">// e.g. 0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4: Diff -->
+  <div class="step" style="--i:3">
+    <div class="step-connector">
+      <div class="step-circle step-circle--diff">4</div>
+      <div class="step-line"></div>
+    </div>
+    <div class="step-body">
+      <div class="step-title">Diff — Compare Desired vs Actual</div>
+      <div class="step-desc">Three possible outcomes drive different actions:</div>
+      <div class="step-branches">
+        <div class="branch branch--scale-up">
+          <div class="b-title">desired &gt; actual</div>
+          <div class="b-desc">Scale up. Create (desired − actual) new AgentInstances.</div>
+        </div>
+        <div class="branch branch--scale-down">
+          <div class="b-title">desired &lt; actual</div>
+          <div class="b-desc">Scale down. Delete (actual − desired) excess instances (graceful).</div>
+        </div>
+        <div class="branch branch--balanced">
+          <div class="b-title">desired == actual</div>
+          <div class="b-desc">No-op for scaling. Still update status and health conditions.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5: Act -->
+  <div class="step" style="--i:4">
+    <div class="step-connector">
+      <div class="step-circle step-circle--act">5</div>
+      <div class="step-line"></div>
+    </div>
+    <div class="step-body">
+      <div class="step-title">Act — Execute Scale-Up / Scale-Down</div>
+      <div class="step-desc">
+        Create or delete AgentInstance records. All writes are fenced with the current
+        leader election FenceToken — stale writes are rejected by DynamoDB.
+      </div>
+      <div class="step-code">
+<span class="cm">// Scale up — create missing instances</span>
+<span class="kw">for</span> i := 0; i &lt; desired-actual; i++ {
+  inst := buildAgentInstance(def, generateShortID())
+  client.<span class="fn">CreateAgentInstance</span>(ctx, inst)  <span class="cm">// TODO: needs proto RPC</span>
+}
+
+<span class="cm">// Scale down — delete excess instances (oldest first)</span>
+<span class="kw">for</span> i := 0; i &lt; actual-desired; i++ {
+  client.<span class="fn">DeleteAgentInstance</span>(ctx, instances[i])  <span class="cm">// TODO: needs proto RPC</span>
+}
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 6: UpdateStatus -->
+  <div class="step" style="--i:5">
+    <div class="step-connector">
+      <div class="step-circle step-circle--status">6</div>
+      <div class="step-line"></div>
+    </div>
+    <div class="step-body">
+      <div class="step-title">UpdateStatus — Reflect Actual State</div>
+      <div class="step-desc">
+        Update the AgentDefinition's <code>status</code> subresource with current counts and conditions.
+        Uses optimistic concurrency — if the definition changed during reconciliation, write fails and key is requeued.
+      </div>
+      <div class="step-code">
+def.Status.ReadyInstances     = countReady(instances)
+def.Status.DesiredInstances   = int32(desired)
+def.Status.UnavailableInstances = countUnavailable(instances)
+def.Status.Conditions = []Condition{
+  {Type: <span class="st">"Available"</span>, Status: boolToStr(readyCount >= desired)},
+  {Type: <span class="st">"Progressing"</span>, Status: boolToStr(readyCount < desired)},
+}
+client.<span class="fn">UpdateAgentDefinition</span>(ctx, def)
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 7: Error handling / requeue -->
+  <div class="step" style="--i:6">
+    <div class="step-connector">
+      <div class="step-circle step-circle--error">7</div>
+    </div>
+    <div class="step-body">
+      <div class="step-title">Error Handling — Exponential Backoff</div>
+      <div class="step-desc">
+        On failure, the key is re-enqueued with exponential backoff. On success, backoff is forgotten.
+        A <code>RequeueAfter</code> schedules the next periodic health-check reconciliation.
+      </div>
+      <div class="backoff-row">
+        <div class="backoff-box"><strong>1st error</strong> → 5ms</div>
+        <div class="backoff-arrow">→</div>
+        <div class="backoff-box"><strong>2nd</strong> → 10ms</div>
+        <div class="backoff-arrow">→</div>
+        <div class="backoff-box"><strong>3rd</strong> → 20ms</div>
+        <div class="backoff-arrow">→</div>
+        <div class="backoff-box">doubles each time</div>
+        <div class="backoff-arrow">→</div>
+        <div class="backoff-box"><strong>max</strong> 1000s</div>
+      </div>
+      <div class="step-code">
+<span class="kw">if</span> err != nil {
+  queue.<span class="fn">AddRateLimited</span>(key)  <span class="cm">// exponential backoff</span>
+  <span class="kw">return</span>
+}
+queue.<span class="fn">Forget</span>(key)            <span class="cm">// reset backoff counter</span>
+queue.<span class="fn">AddAfter</span>(key, reconcileInterval)  <span class="cm">// periodic re-check</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

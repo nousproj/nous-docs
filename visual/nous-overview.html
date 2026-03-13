@@ -1,0 +1,1822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOUS — Control Plane for AI Agents</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --bg-void: #06070b;
+    --bg-surface: #0c0e14;
+    --bg-elevated: #12151e;
+    --bg-card: #161a26;
+    --border-subtle: rgba(255,255,255,0.06);
+    --border-active: rgba(100,180,255,0.25);
+    --text-primary: #e8ecf4;
+    --text-secondary: #7a8399;
+    --text-dim: #4a5266;
+    --accent-blue: #4d9aff;
+    --accent-cyan: #22d3ee;
+    --accent-violet: #8b5cf6;
+    --accent-emerald: #34d399;
+    --accent-amber: #fbbf24;
+    --accent-rose: #f472b6;
+    --accent-orange: #fb923c;
+    --glow-blue: rgba(77,154,255,0.15);
+    --glow-cyan: rgba(34,211,238,0.12);
+    --glow-violet: rgba(139,92,246,0.12);
+    --glow-emerald: rgba(52,211,153,0.1);
+    --font-display: 'Outfit', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-void);
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* ─── CANVAS BACKGROUND ─── */
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(ellipse 800px 600px at 20% 10%, rgba(77,154,255,0.06), transparent),
+      radial-gradient(ellipse 600px 500px at 80% 80%, rgba(139,92,246,0.05), transparent),
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    position: relative; z-index: 2;
+    text-align: center;
+    padding: 60px 20px 40px;
+  }
+
+  header .tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent-cyan);
+    background: rgba(34,211,238,0.08);
+    border: 1px solid rgba(34,211,238,0.15);
+    border-radius: 20px;
+    padding: 6px 18px;
+    margin-bottom: 20px;
+    animation: fadeSlideDown 0.8s ease-out;
+  }
+
+  header h1 {
+    font-size: clamp(42px, 6vw, 72px);
+    font-weight: 900;
+    letter-spacing: -2px;
+    line-height: 1;
+    background: linear-gradient(135deg, #fff 0%, var(--accent-blue) 50%, var(--accent-violet) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: fadeSlideDown 0.8s ease-out 0.1s both;
+  }
+
+  header p {
+    margin-top: 14px;
+    font-size: 17px;
+    font-weight: 300;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin-left: auto; margin-right: auto;
+    animation: fadeSlideDown 0.8s ease-out 0.2s both;
+  }
+
+  /* ─── NAVIGATION TABS ─── */
+  .nav-tabs {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; justify-content: center; gap: 4px;
+    padding: 12px 20px;
+    background: rgba(6,7,11,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-subtle);
+    flex-wrap: wrap;
+  }
+
+  .nav-tab {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+  }
+
+  .nav-tab:hover {
+    color: var(--text-primary);
+    background: var(--bg-elevated);
+  }
+
+  .nav-tab.active {
+    color: var(--accent-blue);
+    background: var(--glow-blue);
+    border-color: var(--border-active);
+  }
+
+  /* ─── SECTIONS ─── */
+  .section {
+    position: relative; z-index: 1;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 40px 24px 60px;
+    display: none;
+  }
+
+  .section.active { display: block; animation: fadeIn 0.5s ease-out; }
+
+  .section-title {
+    font-size: 13px;
+    font-family: var(--font-mono);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent-cyan);
+    margin-bottom: 8px;
+  }
+
+  .section-heading {
+    font-size: clamp(26px, 3vw, 36px);
+    font-weight: 700;
+    letter-spacing: -1px;
+    margin-bottom: 30px;
+    color: var(--text-primary);
+  }
+
+  /* ─── ARCHITECTURE DIAGRAM ─── */
+  .arch-container {
+    position: relative;
+    width: 100%;
+    min-height: 700px;
+    overflow: visible;
+  }
+
+  .arch-layer {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .arch-node {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 20px 24px;
+    min-width: 200px;
+    max-width: 320px;
+    flex: 1;
+    transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+    cursor: default;
+    overflow: hidden;
+  }
+
+  .arch-node::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+  }
+
+  .arch-node:hover {
+    transform: translateY(-3px);
+    border-color: var(--border-active);
+  }
+
+  .arch-node:hover::before { opacity: 1; }
+
+  .arch-node.blue::before { background: radial-gradient(ellipse at center, var(--glow-blue), transparent 70%); }
+  .arch-node.violet::before { background: radial-gradient(ellipse at center, var(--glow-violet), transparent 70%); }
+  .arch-node.cyan::before { background: radial-gradient(ellipse at center, var(--glow-cyan), transparent 70%); }
+  .arch-node.emerald::before { background: radial-gradient(ellipse at center, var(--glow-emerald), transparent 70%); }
+
+  .arch-node .icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .arch-node.blue .icon { background: rgba(77,154,255,0.12); color: var(--accent-blue); }
+  .arch-node.violet .icon { background: rgba(139,92,246,0.12); color: var(--accent-violet); }
+  .arch-node.cyan .icon { background: rgba(34,211,238,0.12); color: var(--accent-cyan); }
+  .arch-node.emerald .icon { background: rgba(52,211,153,0.12); color: var(--accent-emerald); }
+
+  .arch-node .node-title {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .arch-node.blue .node-title { color: var(--accent-blue); }
+  .arch-node.violet .node-title { color: var(--accent-violet); }
+  .arch-node.cyan .node-title { color: var(--accent-cyan); }
+  .arch-node.emerald .node-title { color: var(--accent-emerald); }
+
+  .arch-node .node-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .arch-node .node-ports {
+    margin-top: 10px;
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+
+  .port-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-dim);
+  }
+
+  /* ─── CONNECTOR ARROWS ─── */
+  .layer-connector {
+    display: flex;
+    justify-content: center;
+    margin: -10px 0 -10px;
+    padding: 10px 0;
+  }
+
+  .arrow-down {
+    width: 2px;
+    height: 40px;
+    position: relative;
+    overflow: visible;
+  }
+
+  .arrow-down::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 2px; height: 100%;
+    background: linear-gradient(to bottom, var(--accent-blue), transparent);
+    animation: flowDown 2s linear infinite;
+  }
+
+  .arrow-down::after {
+    content: '';
+    position: absolute;
+    bottom: -6px; left: -4px;
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 7px solid var(--accent-blue);
+    opacity: 0.6;
+  }
+
+  /* ─── DATA FLOW ANIMATION ─── */
+  .flow-container {
+    position: relative;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 30px;
+    overflow: hidden;
+  }
+
+  .flow-timeline {
+    position: relative;
+    padding-left: 60px;
+  }
+
+  .flow-timeline::before {
+    content: '';
+    position: absolute;
+    left: 24px; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent-blue), var(--accent-violet), var(--accent-emerald));
+    opacity: 0.3;
+  }
+
+  .flow-step {
+    position: relative;
+    margin-bottom: 20px;
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: all 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .flow-step.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .flow-step .step-dot {
+    position: absolute;
+    left: -42px; top: 4px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-blue);
+    background: var(--bg-void);
+    z-index: 2;
+    transition: all 0.3s ease;
+  }
+
+  .flow-step.visible .step-dot {
+    background: var(--accent-blue);
+    box-shadow: 0 0 12px var(--glow-blue);
+  }
+
+  .flow-step .step-actor {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .flow-step .step-action {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .flow-step .step-action code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: rgba(77,154,255,0.1);
+    color: var(--accent-blue);
+    border: 1px solid rgba(77,154,255,0.15);
+  }
+
+  /* Actor colors */
+  .actor-user { color: var(--accent-amber); }
+  .actor-api { color: var(--accent-blue); }
+  .actor-ctrl { color: var(--accent-violet); }
+  .actor-sched { color: var(--accent-cyan); }
+  .actor-super { color: var(--accent-emerald); }
+  .actor-dynamo { color: var(--accent-orange); }
+
+  /* ─── STATE MACHINES ─── */
+  .state-machine {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    padding: 30px;
+  }
+
+  .state-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 0;
+  }
+
+  .state-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 130px;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    border: 1.5px solid;
+    transition: all 0.4s ease;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .state-box:hover {
+    transform: scale(1.05);
+    z-index: 2;
+  }
+
+  .state-pending { background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.3); color: var(--accent-amber); }
+  .state-starting { background: rgba(77,154,255,0.08); border-color: rgba(77,154,255,0.3); color: var(--accent-blue); }
+  .state-ready { background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.3); color: var(--accent-emerald); }
+  .state-running { background: rgba(34,211,238,0.08); border-color: rgba(34,211,238,0.3); color: var(--accent-cyan); }
+  .state-scheduled { background: rgba(139,92,246,0.08); border-color: rgba(139,92,246,0.3); color: var(--accent-violet); }
+  .state-succeeded { background: rgba(52,211,153,0.1); border-color: rgba(52,211,153,0.4); color: var(--accent-emerald); }
+  .state-failed { background: rgba(244,114,182,0.08); border-color: rgba(244,114,182,0.3); color: var(--accent-rose); }
+  .state-terminated { background: rgba(244,114,182,0.06); border-color: rgba(244,114,182,0.2); color: var(--accent-rose); }
+  .state-preempted { background: rgba(251,146,60,0.08); border-color: rgba(251,146,60,0.3); color: var(--accent-orange); }
+
+  .state-pending:hover { box-shadow: 0 0 20px rgba(251,191,36,0.15); }
+  .state-starting:hover { box-shadow: 0 0 20px rgba(77,154,255,0.15); }
+  .state-ready:hover { box-shadow: 0 0 20px rgba(52,211,153,0.15); }
+  .state-running:hover { box-shadow: 0 0 20px rgba(34,211,238,0.15); }
+  .state-scheduled:hover { box-shadow: 0 0 20px rgba(139,92,246,0.15); }
+  .state-succeeded:hover { box-shadow: 0 0 20px rgba(52,211,153,0.2); }
+  .state-failed:hover { box-shadow: 0 0 20px rgba(244,114,182,0.15); }
+  .state-preempted:hover { box-shadow: 0 0 20px rgba(251,146,60,0.15); }
+
+  .state-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    color: var(--text-dim);
+    font-size: 10px;
+    font-family: var(--font-mono);
+    min-height: 40px;
+    justify-content: center;
+  }
+
+  .state-arrow .arrow-icon {
+    font-size: 18px;
+    opacity: 0.5;
+    line-height: 1;
+  }
+
+  .state-arrow .arrow-label {
+    max-width: 120px;
+    text-align: center;
+    line-height: 1.2;
+    color: var(--text-dim);
+  }
+
+  .state-branch {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .branch-path {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* ─── SCHEDULING PIPELINE ─── */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .pipeline-phase {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 22px 26px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.35s ease;
+  }
+
+  .pipeline-phase:hover {
+    border-color: var(--border-active);
+    transform: translateX(4px);
+  }
+
+  .pipeline-phase::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 0 2px 2px 0;
+  }
+
+  .pipeline-phase:nth-child(1)::before { background: var(--accent-amber); }
+  .pipeline-phase:nth-child(2)::before { background: var(--accent-blue); }
+  .pipeline-phase:nth-child(3)::before { background: var(--accent-violet); }
+  .pipeline-phase:nth-child(4)::before { background: var(--accent-cyan); }
+  .pipeline-phase:nth-child(5)::before { background: var(--accent-emerald); }
+
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .phase-number {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .pipeline-phase:nth-child(1) .phase-number { background: rgba(251,191,36,0.12); color: var(--accent-amber); }
+  .pipeline-phase:nth-child(2) .phase-number { background: rgba(77,154,255,0.12); color: var(--accent-blue); }
+  .pipeline-phase:nth-child(3) .phase-number { background: rgba(139,92,246,0.12); color: var(--accent-violet); }
+  .pipeline-phase:nth-child(4) .phase-number { background: rgba(34,211,238,0.12); color: var(--accent-cyan); }
+  .pipeline-phase:nth-child(5) .phase-number { background: rgba(52,211,153,0.12); color: var(--accent-emerald); }
+
+  .phase-name {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .phase-detail {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    padding-left: 40px;
+  }
+
+  .phase-detail code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.04);
+    color: var(--text-primary);
+  }
+
+  /* ─── SCORING BARS ─── */
+  .score-plugin {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0;
+  }
+
+  .score-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    width: 100px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .score-bar-bg {
+    flex: 1;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.04);
+    overflow: hidden;
+    max-width: 300px;
+  }
+
+  .score-bar {
+    height: 100%;
+    border-radius: 4px;
+    width: 0;
+    transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .score-bar.cost { background: linear-gradient(90deg, var(--accent-amber), var(--accent-orange)); }
+  .score-bar.quality { background: linear-gradient(90deg, var(--accent-violet), var(--accent-rose)); }
+  .score-bar.latency { background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue)); }
+  .score-bar.affinity { background: linear-gradient(90deg, var(--accent-emerald), var(--accent-cyan)); }
+
+  .score-weight {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    width: 40px;
+    flex-shrink: 0;
+  }
+
+  /* ─── DYNAMO TABLE ─── */
+  .dynamo-table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-card);
+  }
+
+  .dynamo-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .dynamo-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent-cyan);
+    background: rgba(34,211,238,0.04);
+    border-bottom: 1px solid var(--border-subtle);
+    white-space: nowrap;
+  }
+
+  .dynamo-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  .dynamo-table tr:last-child td { border-bottom: none; }
+
+  .dynamo-table tr:hover td { background: rgba(255,255,255,0.015); }
+
+  .key-val { color: var(--accent-amber); }
+  .sk-val { color: var(--accent-blue); }
+
+  /* ─── CHECKPOINT TYPES ─── */
+  .checkpoint-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-top: 20px;
+  }
+
+  .checkpoint-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 18px;
+    transition: all 0.3s ease;
+  }
+
+  .checkpoint-card:hover {
+    border-color: var(--border-active);
+    transform: translateY(-2px);
+  }
+
+  .cp-type {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .cp-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* ─── LEADER ELECTION ─── */
+  .leader-visual {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 24px 0;
+  }
+
+  .leader-node {
+    background: var(--bg-card);
+    border: 2px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 24px 30px;
+    text-align: center;
+    min-width: 180px;
+    transition: all 0.5s ease;
+    position: relative;
+  }
+
+  .leader-node.is-leader {
+    border-color: var(--accent-emerald);
+    box-shadow: 0 0 30px rgba(52,211,153,0.12);
+  }
+
+  .leader-node.is-standby {
+    border-color: var(--border-subtle);
+    opacity: 0.6;
+  }
+
+  .leader-node .crown {
+    font-size: 24px;
+    margin-bottom: 8px;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .leader-node.is-leader .crown { opacity: 1; }
+
+  .leader-node .node-id {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .leader-node .node-status {
+    font-size: 12px;
+    font-family: var(--font-mono);
+  }
+
+  .leader-node.is-leader .node-status { color: var(--accent-emerald); }
+  .leader-node.is-standby .node-status { color: var(--text-dim); }
+
+  .fence-token-display {
+    margin-top: 20px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .fence-token-display span {
+    color: var(--accent-amber);
+    background: rgba(251,191,36,0.08);
+    padding: 3px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(251,191,36,0.15);
+  }
+
+  /* ─── PLAY CONTROLS ─── */
+  .play-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .play-btn {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border-active);
+    background: var(--glow-blue);
+    color: var(--accent-blue);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .play-btn:hover {
+    background: rgba(77,154,255,0.2);
+    transform: translateY(-1px);
+  }
+
+  .play-btn:active { transform: translateY(0); }
+
+  /* ─── PULSE ANIMATION FOR LIVE DATA ─── */
+  .pulse-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent-emerald);
+    display: inline-block;
+    margin-right: 6px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  /* ─── PORT MAP ─── */
+  .port-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+
+  .port-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 14px 16px;
+    transition: all 0.3s ease;
+  }
+
+  .port-item:hover { border-color: var(--border-active); }
+
+  .port-num {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent-amber);
+    min-width: 55px;
+  }
+
+  .port-service {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .port-proto {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.04);
+    color: var(--text-dim);
+  }
+
+  /* ─── SUB-SECTION HEADINGS ─── */
+  .sub-heading {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 30px 0 16px;
+  }
+
+  .info-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    max-width: 800px;
+    margin-bottom: 24px;
+  }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeSlideDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes flowDown {
+    0% { opacity: 0; transform: scaleY(0); transform-origin: top; }
+    50% { opacity: 1; transform: scaleY(1); }
+    100% { opacity: 0; transform: scaleY(1); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-24px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .anim-stagger > * {
+    animation: slideInLeft 0.5s ease-out both;
+  }
+  .anim-stagger > *:nth-child(1) { animation-delay: 0s; }
+  .anim-stagger > *:nth-child(2) { animation-delay: 0.08s; }
+  .anim-stagger > *:nth-child(3) { animation-delay: 0.16s; }
+  .anim-stagger > *:nth-child(4) { animation-delay: 0.24s; }
+  .anim-stagger > *:nth-child(5) { animation-delay: 0.32s; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .arch-node { min-width: 100%; max-width: 100%; }
+    .nav-tab { font-size: 10px; padding: 6px 10px; }
+    .leader-visual { flex-direction: column; align-items: center; }
+    .state-branch { flex-direction: column; align-items: center; }
+  }
+
+  /* ─── DEPS GRAPH ─── */
+  .dep-graph {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .dep-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .dep-node {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 14px 20px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+    min-width: 160px;
+  }
+
+  .dep-node:hover { border-color: var(--border-active); transform: translateY(-2px); }
+  .dep-node strong { color: var(--text-primary); display: block; margin-bottom: 4px; }
+
+  .dep-node.proto { border-color: rgba(251,191,36,0.2); }
+  .dep-node.proto strong { color: var(--accent-amber); }
+
+  .dep-connector {
+    text-align: center;
+    font-size: 18px;
+    color: var(--text-dim);
+    padding: 6px 0;
+    opacity: 0.4;
+  }
+
+  /* ─── AUTH SECTION ─── */
+  .auth-chain-visual {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 24px 0;
+  }
+
+  .auth-chain-step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    cursor: default;
+  }
+
+  .auth-chain-step:hover {
+    border-color: var(--border-active);
+    transform: translateX(4px);
+  }
+
+  .auth-chain-arrow {
+    text-align: center;
+    font-size: 16px;
+    color: var(--text-dim);
+    padding: 4px 0;
+    opacity: 0.4;
+  }
+
+  .auth-chain-step .auth-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .auth-chain-step .auth-step-content {
+    flex: 1;
+  }
+
+  .auth-chain-step .auth-step-title {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .auth-chain-step .auth-step-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .auth-chain-step .auth-step-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .auth-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  .auth-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 22px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .auth-card:hover {
+    border-color: var(--border-active);
+    transform: translateY(-2px);
+  }
+
+  .auth-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 0 2px 2px 0;
+  }
+
+  .auth-card.card-blue::before { background: var(--accent-blue); }
+  .auth-card.card-violet::before { background: var(--accent-violet); }
+  .auth-card.card-cyan::before { background: var(--accent-cyan); }
+  .auth-card.card-emerald::before { background: var(--accent-emerald); }
+  .auth-card.card-amber::before { background: var(--accent-amber); }
+  .auth-card.card-rose::before { background: var(--accent-rose); }
+
+  .auth-card-title {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .auth-card.card-blue .auth-card-title { color: var(--accent-blue); }
+  .auth-card.card-violet .auth-card-title { color: var(--accent-violet); }
+  .auth-card.card-cyan .auth-card-title { color: var(--accent-cyan); }
+  .auth-card.card-emerald .auth-card-title { color: var(--accent-emerald); }
+  .auth-card.card-amber .auth-card-title { color: var(--accent-amber); }
+  .auth-card.card-rose .auth-card-title { color: var(--accent-rose); }
+
+  .auth-card-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .auth-card-desc code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.04);
+    color: var(--text-primary);
+  }
+
+  .auth-token-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    margin: 16px 0;
+  }
+
+  .auth-token-table th {
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent-cyan);
+    background: rgba(34,211,238,0.04);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .auth-token-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+  }
+
+  .auth-token-table tr:last-child td { border-bottom: none; }
+  .auth-token-table tr:hover td { background: rgba(255,255,255,0.015); }
+
+  .rbac-matrix {
+    display: grid;
+    grid-template-columns: 140px repeat(4, 1fr);
+    gap: 2px;
+    margin: 16px 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  .rbac-matrix .rbac-header {
+    padding: 10px 12px;
+    background: rgba(34,211,238,0.06);
+    color: var(--accent-cyan);
+    font-weight: 600;
+    border-radius: 4px;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  .rbac-matrix .rbac-role {
+    padding: 10px 12px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-weight: 600;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+  }
+
+  .rbac-matrix .rbac-cell {
+    padding: 10px 12px;
+    background: var(--bg-card);
+    border-radius: 4px;
+    text-align: center;
+    color: var(--text-dim);
+  }
+
+  .rbac-cell.allowed { color: var(--accent-emerald); }
+  .rbac-cell.denied { color: var(--accent-rose); opacity: 0.5; }
+  .rbac-cell.scoped { color: var(--accent-amber); }
+
+  .auth-flow-diagram {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 30px;
+    margin: 20px 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+
+<header>
+  <div class="tag">open-source agent orchestration</div>
+  <h1>NOUS</h1>
+  <p>The control plane for AI agents — applying Kubernetes-proven patterns to cognitive workload management</p>
+</header>
+
+<nav class="nav-tabs" id="navTabs">
+  <button class="nav-tab active" data-section="architecture">Architecture</button>
+  <button class="nav-tab" data-section="control-plane">Control Plane</button>
+  <button class="nav-tab" data-section="data-flow">Data Flow</button>
+  <button class="nav-tab" data-section="scheduling">Scheduling</button>
+  <button class="nav-tab" data-section="state-machines">State Machines</button>
+  <button class="nav-tab" data-section="checkpoints">Checkpoints</button>
+  <button class="nav-tab" data-section="leader-election">Leader Election</button>
+  <button class="nav-tab" data-section="storage">Storage</button>
+  <button class="nav-tab" data-section="network">Network</button>
+  <button class="nav-tab" data-section="dependencies">Dependencies</button>
+  <button class="nav-tab" data-section="authentication">Authentication</button>
+</nav>
+
+<!-- ════════════════ SECTION: ARCHITECTURE ════════════════ -->
+<div class="section active" id="architecture">
+  <div class="section-title">01 — Overview</div>
+  <div class="section-heading">High-Level Architecture</div>
+
+  <div class="arch-container">
+    <!-- Layer 1: User -->
+    <div class="arch-layer">
+      <div class="arch-node blue">
+        <div class="icon">⌨</div>
+        <div class="node-title">nousctl</div>
+        <div class="node-desc">CLI for agents — kubectl-style interface for declaring agent definitions, tasks, and workflows</div>
+        <div class="node-ports"><span class="port-badge">gRPC :31051</span><span class="port-badge">HTTP :31080</span></div>
+      </div>
+      <div class="arch-node violet">
+        <div class="icon">◉</div>
+        <div class="node-title">nous-dashboard</div>
+        <div class="node-desc">Next.js monitoring UI — real-time agent status, metrics, and task tracking</div>
+        <div class="node-ports"><span class="port-badge">HTTP :3000</span></div>
+      </div>
+    </div>
+
+    <div class="layer-connector"><div class="arrow-down"></div></div>
+
+    <!-- Layer 2: API Server -->
+    <div class="arch-layer">
+      <div class="arch-node cyan" style="max-width:600px;">
+        <div class="icon">⬡</div>
+        <div class="node-title">nous-api-server</div>
+        <div class="node-desc">The backbone — single source of truth. gRPC &amp; REST interfaces, service layer with validation, watch broadcaster for event fan-out to all subscribers</div>
+        <div class="node-ports">
+          <span class="port-badge">gRPC :31051</span>
+          <span class="port-badge">REST :31080</span>
+          <span class="port-badge">Metrics :31090</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer-connector"><div class="arrow-down"></div></div>
+
+    <!-- Layer 3: Control Plane Services -->
+    <div class="arch-layer anim-stagger">
+      <div class="arch-node violet">
+        <div class="icon">⟳</div>
+        <div class="node-title">controller-manager</div>
+        <div class="node-desc">Reconciliation loops: AgentController (desired vs actual), HealthController (heartbeat + quality), TaskController (timeout + recovery)</div>
+        <div class="node-ports"><span class="port-badge">Metrics :31091</span></div>
+      </div>
+      <div class="arch-node cyan">
+        <div class="icon">⊞</div>
+        <div class="node-title">nous-scheduler</div>
+        <div class="node-desc">Multi-objective scheduling: filter → score → rank → bind. Cost, quality, latency plugins with affinity and gang scheduling</div>
+        <div class="node-ports"><span class="port-badge">Metrics :31092</span></div>
+      </div>
+      <div class="arch-node emerald">
+        <div class="icon">▶</div>
+        <div class="node-title">node-supervisor</div>
+        <div class="node-desc">Agent runtime management: instance watcher, process manager, task executor, checkpoint manager, heartbeat reporter</div>
+        <div class="node-ports"><span class="port-badge">Health :31083</span><span class="port-badge">Metrics :31093</span></div>
+      </div>
+    </div>
+
+    <div class="layer-connector"><div class="arrow-down"></div></div>
+
+    <!-- Layer 4: Storage -->
+    <div class="arch-layer">
+      <div class="arch-node blue" style="max-width:500px;">
+        <div class="icon">◧</div>
+        <div class="node-title">DynamoDB</div>
+        <div class="node-desc">Single-table design — <code>nous-state</code> for all resources (AgentDefinitions, Tasks, Instances, Secrets) with AES-256-GCM encryption. <code>nous-leases</code> for leader election.</div>
+        <div class="node-ports"><span class="port-badge">:31000 (host)</span><span class="port-badge">:8000 (internal)</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ SECTION: CONTROL PLANE ════════════════ -->
+<div class="section" id="control-plane">
+  <div class="section-title">02 — Control Plane</div>
+  <div class="section-heading">gRPC Watch-Driven Reconciliation</div>
+
+  <p class="info-text">
+    All control plane services connect to the api-server via gRPC Watch streams. When resources change, events are broadcast to all subscribers, which enqueue reconciliation work via deduplicated work queues.
+  </p>
+
+  <div class="arch-layer anim-stagger">
+    <div class="arch-node violet">
+      <div class="icon">⟳</div>
+      <div class="node-title">AgentController</div>
+      <div class="node-desc">Watches AgentDefinitions. Compares desired replica count vs actual instance count. Creates or deletes instances to reconcile.</div>
+    </div>
+    <div class="arch-node violet">
+      <div class="icon">♥</div>
+      <div class="node-title">HealthController</div>
+      <div class="node-desc">Watches AgentInstances. Evaluates heartbeat freshness, quality gates, and cost ceilings. Marks instances Failed when unhealthy.</div>
+    </div>
+    <div class="arch-node violet">
+      <div class="icon">⧖</div>
+      <div class="node-title">TaskController</div>
+      <div class="node-desc">Watches AgentTasks. Handles timeouts, recovery retries, and stale task cleanup. Manages the task retry lifecycle.</div>
+    </div>
+  </div>
+
+  <div class="sub-heading">Reconciliation Loop</div>
+  <p class="info-text">
+    Each controller follows the same pattern: WatchInformer receives events → keys enqueued to WorkQueue (deduplication, dirty tracking) → Controller.Reconcile(ctx, key) → observe desired/actual → compute delta → issue corrective writes → return Result (success, requeue, or requeue-after).
+  </p>
+
+  <div class="arch-layer anim-stagger" style="margin-top: 20px;">
+    <div class="arch-node cyan">
+      <div class="icon">↻</div>
+      <div class="node-title">WorkQueue</div>
+      <div class="node-desc">Dirty set + processing set. Same key not processed concurrently. Re-enqueue if modified while processing. Exponential backoff on error (5ms → 1000s).</div>
+    </div>
+    <div class="arch-node cyan">
+      <div class="icon">⇄</div>
+      <div class="node-title">Cross-Controller</div>
+      <div class="node-desc">Instance changes trigger both HealthController (re-evaluate) and AgentController (re-count). Informers feed multiple queues simultaneously.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ SECTION: DATA FLOW ════════════════ -->
+<div class="section" id="data-flow">
+  <div class="section-title">03 — Data Flow</div>
+  <div class="section-heading">End-to-End: Apply → Execute</div>
+
+  <div class="play-controls">
+    <button class="play-btn" id="playFlowBtn">▶ Play Animation</button>
+    <button class="play-btn" id="resetFlowBtn">↺ Reset</button>
+  </div>
+
+  <div class="flow-container">
+    <div class="flow-timeline" id="flowTimeline">
+      <div class="flow-step" data-delay="0">
+        <div class="step-dot"></div>
+        <div class="step-actor actor-user">USER</div>
+        <div class="step-action"><code>nousctl apply -f researcher.yaml</code> — parse YAML, convert to protojson, send CreateAgentDefinition</div>
+      </div>
+      <div class="flow-step" data-delay="200">
+        <div class="step-dot"></div>
+        <div class="step-actor actor-api">API-SERVER</div>
+        <div class="step-action">Validate → set UID/ResourceVersion/Generation → DynamoDB PutItem → <code>broadcaster.Publish(ADDED)</code></div>
+      </div>
+      <div class="flow-step" data-delay="400">
+        <div class="step-dot"></div>
+        <div class="step-actor actor-ctrl">CONTROLLER-MANAGER</div>
+        <div class="step-action">WatchInformer receives ADDED event → <code>queue.Add("default/researcher")</code> → AgentController.Reconcile: desired=2, actual=0 → CreateInstance ×2</div>
+      </div>
+      <div class="flow-step" data-delay="600">
+        <div class="step-dot"></div>
+        <div class="step-actor actor-super">NODE-SUPERVISOR</div>
+        <div class="step-action">InstanceWatcher receives ADDED instances → claim instance → launch SimulatedAgent → phase=<code>Starting</code> → HeartbeatReporter → phase=<code>Ready</code></div>
+      </div>
+      <div class="flow-step" data-delay="800">
+        <div class="step-dot"></div>
+        <div class="step-actor actor-user">USER</div>
+        <div class="step-action"><code>nousctl apply -f task.yaml</code> — CreateAgentTask → validate + store → <code>broadcaster.Publish(ADDED task)</code></div>
+      </div>
+      <div class="flow-step" data-delay="1000">
+        <div class="step-dot"></div>
+        <div class="step-actor actor-sched">SCHEDULER</div>
+        <div class="step-action">WatchInformer(tasks) → Gang eval: NotApplicable → Filter: inst1, inst2 Ready → Score: <code>cost×0.3 + quality×0.4 + latency×0.3</code> → Pick inst1 → Bind: phase=<code>Scheduled</code></div>
+      </div>
+      <div class="flow-step" data-delay="1200">
+        <div class="step-dot"></div>
+        <div class="step-actor actor-super">NODE-SUPERVISOR</div>
+        <div class="step-action">TaskExecutor receives Scheduled task → <code>procMgr.ExecuteTask</code> → phase=<code>Running</code> → steps with checkpoints at each decision point</div>
+      </div>
+      <div class="flow-step" data-delay="1400">
+        <div class="step-dot"></div>
+        <div class="step-actor actor-super">NODE-SUPERVISOR</div>
+        <div class="step-action">SimulatedAgent completes → final checkpoint (<code>completion</code> type) → phase=<code>Succeeded</code> → output + metrics written to task status</div>
+      </div>
+      <div class="flow-step" data-delay="1600">
+        <div class="step-dot"></div>
+        <div class="step-actor actor-user">USER</div>
+        <div class="step-action"><code>nousctl get agenttasks</code> → Succeeded, output: "...", tokens: 600, cost: $0.0006</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ SECTION: SCHEDULING ════════════════ -->
+<div class="section" id="scheduling">
+  <div class="section-title">04 — Scheduling</div>
+  <div class="section-heading">Multi-Objective Scheduling Pipeline</div>
+
+  <p class="info-text">Tasks flow through a 5-phase scheduling pipeline that evaluates gang requirements, filters eligible instances, scores across multiple objectives, ranks candidates, and binds or preempts.</p>
+
+  <div class="pipeline anim-stagger">
+    <div class="pipeline-phase">
+      <div class="phase-header">
+        <div class="phase-number">0</div>
+        <div class="phase-name">Gang Evaluation</div>
+      </div>
+      <div class="phase-detail">
+        Check <code>nous.ai/gang-id</code> label. If present, evaluate whether all gang members are available. States: <code>GangNotApplicable</code> → continue, <code>GangWaiting</code> → requeue 5s, <code>GangTimeout</code> → fail, <code>GangReady</code> → continue.
+      </div>
+    </div>
+    <div class="pipeline-phase">
+      <div class="phase-header">
+        <div class="phase-number">1</div>
+        <div class="phase-name">Filter</div>
+      </div>
+      <div class="phase-detail">
+        For each AgentInstance: phase must be <code>Ready</code> or <code>Running</code>, agentDefinition must match <code>task.spec.agentRef</code>, lastHeartbeat within timeout (30s default). Produces filtered candidate list.
+      </div>
+    </div>
+    <div class="pipeline-phase">
+      <div class="phase-header">
+        <div class="phase-number">2</div>
+        <div class="phase-name">Score</div>
+      </div>
+      <div class="phase-detail">
+        Each filtered instance scored by weighted plugins:
+        <div style="margin-top: 12px;">
+          <div class="score-plugin">
+            <span class="score-label">Cost</span>
+            <div class="score-bar-bg"><div class="score-bar cost" data-width="30%"></div></div>
+            <span class="score-weight">×0.3</span>
+          </div>
+          <div class="score-plugin">
+            <span class="score-label">Quality</span>
+            <div class="score-bar-bg"><div class="score-bar quality" data-width="40%"></div></div>
+            <span class="score-weight">×0.4</span>
+          </div>
+          <div class="score-plugin">
+            <span class="score-label">Latency</span>
+            <div class="score-bar-bg"><div class="score-bar latency" data-width="30%"></div></div>
+            <span class="score-weight">×0.3</span>
+          </div>
+          <div class="score-plugin">
+            <span class="score-label">Affinity</span>
+            <div class="score-bar-bg"><div class="score-bar affinity" data-width="30%"></div></div>
+            <span class="score-weight">×0.3</span>
+          </div>
+        </div>
+        <div style="margin-top: 8px; font-size: 12px; color: var(--text-dim);">total = Σ(plugin.score × weight) / Σ(weights)</div>
+      </div>
+    </div>
+    <div class="pipeline-phase">
+      <div class="phase-header">
+        <div class="phase-number">3</div>
+        <div class="phase-name">Rank &amp; Pick</div>
+      </div>
+      <div class="phase-detail">Sort by total score descending → pick top candidate. Tie-breaker: instance with lowest current task load.</div>
+    </div>
+    <div class="pipeline-phase">
+      <div class="phase-header">
+        <div class="phase-number">4</div>
+        <div class="phase-name">Bind or Preempt</div>
+      </div>
+      <div class="phase-detail">
+        <strong>Instance found:</strong> set <code>task.status.assignedInstance</code>, phase → <code>Scheduled</code>.<br>
+        <strong>No instance + preemption:</strong> find lowest-priority running task (with anti-cascade guard), preempt it, re-enqueue original.<br>
+        <strong>No instance + no preemption:</strong> increment unschedulableCount, requeue with backoff.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ SECTION: STATE MACHINES ════════════════ -->
+<div class="section" id="state-machines">
+  <div class="section-title">05 — Lifecycles</div>
+  <div class="section-heading">Resource State Machines</div>
+
+  <div class="sub-heading">AgentInstance Lifecycle</div>
+  <div class="flow-container">
+    <div class="state-machine">
+      <div class="state-row"><div class="state-box state-pending">Pending</div></div>
+      <div class="state-arrow"><div class="arrow-icon">↓</div><div class="arrow-label">supervisor claims + launches</div></div>
+      <div class="state-row"><div class="state-box state-starting">Starting</div></div>
+      <div class="state-arrow"><div class="arrow-icon">↓</div><div class="arrow-label">heartbeat × success_threshold</div></div>
+      <div class="state-row"><div class="state-box state-ready">Ready</div></div>
+      <div class="state-arrow"><div class="arrow-icon">↓</div></div>
+      <div class="state-branch">
+        <div class="branch-path">
+          <div class="state-arrow"><div class="arrow-label">scale-down / deleted</div><div class="arrow-icon">↓</div></div>
+          <div class="state-box state-terminated">Terminating</div>
+          <div class="state-arrow"><div class="arrow-icon">↓</div><div class="arrow-label">graceful stop</div></div>
+          <div class="state-box" style="background: rgba(255,255,255,0.03); border-color: var(--border-subtle); color: var(--text-dim);">[deleted]</div>
+        </div>
+        <div class="branch-path">
+          <div class="state-arrow"><div class="arrow-label">heartbeat stale / quality below floor</div><div class="arrow-icon">↓</div></div>
+          <div class="state-box state-failed">Failed</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub-heading" style="margin-top: 40px;">AgentTask Lifecycle</div>
+  <div class="flow-container">
+    <div class="state-machine">
+      <div class="state-row"><div class="state-box state-pending">Pending</div></div>
+      <div class="state-arrow"><div class="arrow-icon">↓</div><div class="arrow-label">scheduler.Reconcile</div></div>
+      <div class="state-row"><div class="state-box state-scheduled">Scheduled</div></div>
+      <div class="state-arrow"><div class="arrow-icon">↓</div><div class="arrow-label">supervisor.TaskExecutor</div></div>
+      <div class="state-row"><div class="state-box state-running">Running</div></div>
+      <div class="state-arrow"><div class="arrow-icon">↓</div></div>
+      <div class="state-branch">
+        <div class="branch-path">
+          <div class="state-arrow"><div class="arrow-label">success</div><div class="arrow-icon">↓</div></div>
+          <div class="state-box state-succeeded">Succeeded</div>
+        </div>
+        <div class="branch-path">
+          <div class="state-arrow"><div class="arrow-label">timeout / lost</div><div class="arrow-icon">↓</div></div>
+          <div class="state-box state-failed">Failed</div>
+          <div class="state-arrow"><div class="arrow-icon">↺</div><div class="arrow-label">retry &lt; max → Pending</div></div>
+        </div>
+        <div class="branch-path">
+          <div class="state-arrow"><div class="arrow-label">preempted</div><div class="arrow-icon">↓</div></div>
+          <div class="state-box state-preempted">Preempted</div>
+          <div class="state-arrow"><div class="arrow-icon">↺</div><div class="arrow-label">reschedule → Pending</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ SECTION: CHECKPOINTS ════════════════ -->
+<div class="section" id="checkpoints">
+  <div class="section-title">06 — Cognitive State</div>
+  <div class="section-heading">Checkpoint Lifecycle</div>
+
+  <p class="info-text">
+    Semantic checkpointing captures cognitive state at decision points during agent execution — reasoning depth, context utilization, intent, reasoning chain, tool history, and side effects. This enables recovery, preemption resume, and affinity-based scheduling.
+  </p>
+
+  <div class="checkpoint-grid anim-stagger">
+    <div class="checkpoint-card">
+      <div class="cp-type" style="color: var(--accent-blue);">decision_point</div>
+      <div class="cp-desc">At each reasoning step / semantic boundary. Captures progressive context utilization.</div>
+    </div>
+    <div class="checkpoint-card">
+      <div class="cp-type" style="color: var(--accent-violet);">periodic</div>
+      <div class="cp-desc">Time-based snapshots (Phase 2). Safety net between decision points.</div>
+    </div>
+    <div class="checkpoint-card">
+      <div class="cp-type" style="color: var(--accent-orange);">preemption</div>
+      <div class="cp-desc">Emergency snapshot when task is preempted mid-flight. Enables resume on different instance.</div>
+    </div>
+    <div class="checkpoint-card">
+      <div class="cp-type" style="color: var(--accent-emerald);">completion</div>
+      <div class="cp-desc">Final state after successful execution. Full cognitive context preserved.</div>
+    </div>
+    <div class="checkpoint-card">
+      <div class="cp-type" style="color: var(--accent-rose);">failure</div>
+      <div class="cp-desc">Snapshot for debugging post-failure. Captures state at point of failure.</div>
+    </div>
+  </div>
+
+  <div class="sub-heading">Checkpoint Resume (Affinity)</div>
+  <p class="info-text">
+    New tasks with <code style="font-family:var(--font-mono);font-size:13px;color:var(--accent-amber);background:rgba(251,191,36,0.08);padding:2px 8px;border-radius:4px;">nous.ai/checkpoint-affinity: "01JR..3"</code> get a +0.5 score boost for instances with matching checkpoint — enabling context-warm resume without cold reconstruction.
+  </p>
+
+  <div class="sub-heading">Checkpoint Storage</div>
+  <div class="flow-container" style="padding: 20px;">
+    <pre style="font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);line-height:1.7;overflow-x:auto;">
+/var/nous/checkpoints/
+└── researcher-abc123/
+    ├── 01JRXYZ123DECISION0.json   ← decision_point (step 0)
+    ├── 01JRXYZ456DECISION1.json   ← decision_point (step 1)
+    ├── 01JRXYZ789DECISION2.json   ← decision_point (step 2)
+    └── 01JRXYZ999COMPLETE.json    ← completion (final)</pre>
+  </div>
+</div>
+
+<!-- ════════════════ SECTION: LEADER ELECTION ════════════════ -->
+<div class="section" id="leader-election">
+  <div class="section-title">07 — HA</div>
+  <div class="section-heading">Leader Election &amp; Split-Brain Protection</div>
+
+  <p class="info-text">
+    DynamoDB-based leader election with fence tokens prevents split-brain scenarios. Each leader write includes the fence token — if a stale leader revives, its writes are rejected due to token mismatch.
+  </p>
+
+  <div class="play-controls">
+    <button class="play-btn" id="leaderPlayBtn">▶ Simulate Failover</button>
+  </div>
+
+  <div class="leader-visual" id="leaderVisual">
+    <div class="leader-node is-leader" id="leader1">
+      <div class="crown">👑</div>
+      <div class="node-id">controller-manager-1</div>
+      <div class="node-status"><span class="pulse-dot"></span>LEADER</div>
+    </div>
+    <div class="leader-node is-standby" id="leader2">
+      <div class="crown">👑</div>
+      <div class="node-id">controller-manager-2</div>
+      <div class="node-status">STANDBY</div>
+    </div>
+    <div class="leader-node" id="leaderDynamo" style="border-color:rgba(251,191,36,0.2);">
+      <div class="crown" style="opacity:1;">◧</div>
+      <div class="node-id">DynamoDB</div>
+      <div class="node-status" style="color:var(--accent-amber);">nous-leases</div>
+    </div>
+  </div>
+
+  <div class="fence-token-display" id="fenceDisplay">
+    Current Fence Token: <span id="fenceToken">1740000000000</span>
+  </div>
+
+  <div class="sub-heading">Fenced Write Path</div>
+  <p class="info-text">
+    Every controller write checks the fence token: <code style="font-family:var(--font-mono);font-size:12px;color:var(--accent-amber);">DynamoDB condition: FenceToken = :tok</code>. If the token doesn't match (stale leader), the write is rejected with <code style="font-family:var(--font-mono);font-size:12px;color:var(--accent-rose);">ErrStaleFence</code> and the stale leader stops.
+  </p>
+</div>
+
+<!-- ════════════════ SECTION: STORAGE ════════════════ -->
+<div class="section" id="storage">
+  <div class="section-title">08 — Storage</div>
+  <div class="section-heading">DynamoDB Single-Table Design</div>
+
+  <div class="sub-heading">nous-state Table</div>
+  <div class="dynamo-table-wrapper">
+    <table class="dynamo-table">
+      <thead>
+        <tr><th>PK</th><th>SK</th><th>GSI1PK</th><th>GSI1SK</th><th>Type</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="key-val">NS#default</td><td class="sk-val">AGENTDEF#researcher</td>
+          <td>NS#default#AGENTDEF</td><td>{ts}#researcher</td><td>AgentDefinition</td>
+        </tr>
+        <tr>
+          <td class="key-val">NS#default</td><td class="sk-val">AGENTDEF#analyst</td>
+          <td>NS#default#AGENTDEF</td><td>{ts}#analyst</td><td>AgentDefinition</td>
+        </tr>
+        <tr>
+          <td class="key-val">NS#default</td><td class="sk-val">AGENTTASK#quarterly-rpt</td>
+          <td>NS#default#AGENTTASK</td><td>{ts}#quarterly-rpt</td><td>AgentTask</td>
+        </tr>
+        <tr>
+          <td class="key-val">NS#default</td><td class="sk-val">AGENTINST#researcher-abc</td>
+          <td>NS#default#AGENTINST</td><td>{ts}#researcher-abc</td><td>AgentInstance</td>
+        </tr>
+        <tr>
+          <td class="key-val">NS#default</td><td class="sk-val">SECRET#api-keys</td>
+          <td>NS#default#SECRET</td><td>{ts}#api-keys</td><td>AgentSecret</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="sub-heading">Conditional Writes (Optimistic Locking)</div>
+  <div class="arch-layer anim-stagger" style="margin-top:16px;">
+    <div class="arch-node blue" style="max-width:260px;">
+      <div class="node-title" style="font-size:12px;">Create</div>
+      <div class="node-desc" style="font-size:11px;font-family:var(--font-mono);">attribute_not_exists(PK)<br>→ ErrExists on conflict</div>
+    </div>
+    <div class="arch-node violet" style="max-width:260px;">
+      <div class="node-title" style="font-size:12px;">Update</div>
+      <div class="node-desc" style="font-size:11px;font-family:var(--font-mono);">ResourceVersion = :expected<br>→ ErrConflict on mismatch</div>
+    </div>
+    <div class="arch-node emerald" style="max-width:260px;">
+      <div class="node-title" style="font-size:12px;">Fenced</div>
+      <div class="node-desc" style="font-size:11px;font-family:var(--font-mono);">RV = :rv AND FenceToken = :token<br>→ ErrStaleFence</div>
+    </div>
+  </div>
+
+  <div class="sub-heading" style="margin-top:30px;">nous-leases Table</div>
+  <div class="dynamo-table-wrapper">
+    <table class="dynamo-table">
+      <thead><tr><th>PK</th><th>SK</th><th>HolderID</th><th>LeaseExpiry</th><th>FenceToken</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="key-val">LEASE#controller-manager</td><td>SINGLETON</td>
+          <td>ctrl-abc123</td><td>2026-02-26T…Z</td><td style="color:var(--accent-amber);">1740000000000</td>
+        </tr>
+        <tr>
+          <td class="key-val">LEASE#scheduler</td><td>SINGLETON</td>
+          <td>sched-xyz99</td><td>2026-02-26T…Z</td><td style="color:var(--accent-amber);">1740000000001</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════ SECTION: NETWORK ════════════════ -->
+<div class="section" id="network">
+  <div class="section-title">09 — Network</div>
+  <div class="section-heading">Port Map &amp; Topology</div>
+
+  <div class="port-grid anim-stagger">
+    <div class="port-item"><span class="port-num">:31000</span><span class="port-service">dynamodb-local</span><span class="port-proto">AWS SDK</span></div>
+    <div class="port-item"><span class="port-num">:31051</span><span class="port-service">nous-api-server</span><span class="port-proto">gRPC</span></div>
+    <div class="port-item"><span class="port-num">:31080</span><span class="port-service">nous-api-server</span><span class="port-proto">REST</span></div>
+    <div class="port-item"><span class="port-num">:31090</span><span class="port-service">nous-api-server</span><span class="port-proto">Prometheus</span></div>
+    <div class="port-item"><span class="port-num">:31091</span><span class="port-service">controller-manager</span><span class="port-proto">Prometheus</span></div>
+    <div class="port-item"><span class="port-num">:31092</span><span class="port-service">nous-scheduler</span><span class="port-proto">Prometheus</span></div>
+    <div class="port-item"><span class="port-num">:31083</span><span class="port-service">node-supervisor</span><span class="port-proto">HTTP Health</span></div>
+    <div class="port-item"><span class="port-num">:31093</span><span class="port-service">node-supervisor</span><span class="port-proto">Prometheus</span></div>
+    <div class="port-item"><span class="port-num">:31084</span><span class="port-service">agent-runtime</span><span class="port-proto">HTTP Health</span></div>
+    <div class="port-item"><span class="port-num">:31094</span><span class="port-service">agent-runtime</span><span class="port-proto">Prometheus</span></div>
+    <div class="port-item"><span class="port-num">:3000</span><span class="port-service">nous-dashboard</span><span class="port-proto">Next.js</span></div>
+    <div class="port-item"><span class="port-num">:1988</span><span class="port-service">mkdocs</span><span class="port-proto">HTTP</span></div>
+  </div>
+
+  <div class="sub-heading">Internal Communication</div>
+  <p class="info-text">
+    All control plane services communicate via gRPC to nous-api-server:31051 on the internal Docker network (nous-network). Leader election services connect directly to DynamoDB via AWS SDK. The dashboard connects to all metric endpoints for observability.
+  </p>
+</div>
+
+<!-- ════════════════ SECTION: DEPENDENCIES ════════════════ -->
+<div class="section" id="dependencies">
+  <div class="section-title">10 — Modules</div>
+  <div class="section-heading">Go Module Dependency Graph</div>
+
+  <p class="info-text">
+    No cycles. Services communicate at runtime via gRPC — no service imports another service's Go module. Only nous-proto is shared.
+  </p>
+
+  <div class="dep-graph">
+    <div class="dep-row">
+      <div class="dep-node"><strong>nousctl</strong>CLI tool</div>
+    </div>
+    <div class="dep-connector">↑</div>
+    <div class="dep-row">
+      <div class="dep-node"><strong>nous-agent-runtime</strong>Agent process</div>
+    </div>
+    <div class="dep-connector">↑</div>
+    <div class="dep-row">
+      <div class="dep-node"><strong>nous-node-supervisor</strong>Runtime manager</div>
+    </div>
+    <div class="dep-connector">↑ ↑ ↑</div>
+    <div class="dep-row">
+      <div class="dep-node"><strong>nous-api-server</strong>Backbone</div>
+      <div class="dep-node"><strong>nous-scheduler</strong>Task scheduling</div>
+      <div class="dep-node"><strong>nous-controller-manager</strong>Reconciliation</div>
+    </div>
+    <div class="dep-connector">↑ ↑ ↑</div>
+    <div class="dep-row">
+      <div class="dep-node proto"><strong>nous-proto</strong>Protobuf contracts + stubs (leaf node)</div>
+    </div>
+  </div>
+</div>
+
+<div style="height:80px;"></div>
+
+<script>
+  // ─── TAB NAVIGATION ───
+  const tabs = document.querySelectorAll('.nav-tab');
+  const sections = document.querySelectorAll('.section');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.section;
+      tabs.forEach(t => t.classList.remove('active'));
+      sections.forEach(s => s.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(target).classList.add('active');
+
+      // Trigger animations when section becomes visible
+      if (target === 'scheduling') animateScoreBars();
+    });
+  });
+
+  // ─── DATA FLOW ANIMATION ───
+  const flowSteps = document.querySelectorAll('.flow-step');
+  let flowTimer = null;
+
+  function playFlow() {
+    resetFlow();
+    let delay = 0;
+    flowSteps.forEach((step, i) => {
+      flowTimer = setTimeout(() => {
+        step.classList.add('visible');
+      }, delay);
+      delay += 350;
+    });
+  }
+
+  function resetFlow() {
+    flowSteps.forEach(s => s.classList.remove('visible'));
+  }
+
+  document.getElementById('playFlowBtn').addEventListener('click', playFlow);
+  document.getElementById('resetFlowBtn').addEventListener('click', resetFlow);
+
+  // Auto-play when data-flow tab is shown
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach(m => {
+      if (m.target.id === 'data-flow' && m.target.classList.contains('active')) {
+        setTimeout(playFlow, 300);
+      }
+    });
+  });
+  sections.forEach(s => observer.observe(s, { attributes: true, attributeFilter: ['class'] }));
+
+  // ─── SCORE BAR ANIMATION ───
+  function animateScoreBars() {
+    document.querySelectorAll('.score-bar').forEach(bar => {
+      bar.style.width = '0';
+      setTimeout(() => {
+        bar.style.width = bar.dataset.width;
+      }, 200);
+    });
+  }
+
+  // ─── LEADER ELECTION SIMULATION ───
+  let leaderState = 1;
+
+  document.getElementById('leaderPlayBtn').addEventListener('click', () => {
+    const l1 = document.getElementById('leader1');
+    const l2 = document.getElementById('leader2');
+    const tokenEl = document.getElementById('fenceToken');
+
+    if (leaderState === 1) {
+      // Simulate crash of leader 1
+      l1.classList.remove('is-leader');
+      l1.classList.add('is-standby');
+      l1.querySelector('.node-status').innerHTML = '✕ CRASHED';
+      l1.querySelector('.node-status').style.color = 'var(--accent-rose)';
+      l1.style.borderColor = 'rgba(244,114,182,0.3)';
+
+      setTimeout(() => {
+        // Leader 2 takes over
+        l2.classList.remove('is-standby');
+        l2.classList.add('is-leader');
+        l2.querySelector('.node-status').innerHTML = '<span class="pulse-dot"></span>LEADER';
+        tokenEl.textContent = '1741000000000';
+      }, 1200);
+
+      leaderState = 2;
+    } else {
+      // Reset
+      l1.classList.add('is-leader');
+      l1.classList.remove('is-standby');
+      l1.querySelector('.node-status').innerHTML = '<span class="pulse-dot"></span>LEADER';
+      l1.querySelector('.node-status').style.color = '';
+      l1.style.borderColor = '';
+
+      l2.classList.add('is-standby');
+      l2.classList.remove('is-leader');
+      l2.querySelector('.node-status').innerHTML = 'STANDBY';
+
+      tokenEl.textContent = '1740000000000';
+      leaderState = 1;
+    }
+  });
+
+  // ─── INITIAL STATE ───
+  if (document.getElementById('data-flow').classList.contains('active')) {
+    setTimeout(playFlow, 500);
+  }
+</script>
+
+</body>
+</html>
